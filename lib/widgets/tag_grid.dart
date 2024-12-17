@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/tag.dart';
-import '../../models/tag.dart';
 import 'commons.dart';
 // import 'tag.dart';
 import 'constants.dart';
@@ -44,8 +43,8 @@ class _TagGridState extends State<TagGrid> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          SubTitleText(data: widget.name!),
-          const SizedBox(height: 8),
+          BodyText(widget.name!),
+          const SizedBox(height: 2),
           _buildGrid(context),
         ],
       );
