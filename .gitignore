@@ -52,3 +52,6 @@ linux/
 macos/
 web/
 windows/
+
+# generative codes
+*.g.dart
