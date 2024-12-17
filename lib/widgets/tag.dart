@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../vivacissimo_old/lib/model_old/tag.dart';
+import '../../models/tag.dart';
 import 'constants.dart';
 
 class TagPill extends StatelessWidget {

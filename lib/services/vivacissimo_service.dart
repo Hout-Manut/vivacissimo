@@ -6,20 +6,20 @@ import 'dart:io';
 import '../dummy_data/data.dart';
 import '../models/models.dart';
 
-class Vivacissimo {
+class VivacissimoService {
   static Future<File?> getEntityFile() async {
     try {
-      Platform.operatingSystem;
+      print(Platform.operatingSystem);
     } on UnsupportedError {
       return null;
     }
-      Directory directory;
-      if (Platform.isWindows) {
-        directory = await getAppDirectory();
-        return File("${directory.path}\\data.json");
-      }
+    Directory directory;
+    if (Platform.isWindows) {
       directory = await getAppDirectory();
-      return File("${directory.path}/data.json");
+      return File("${directory.path}\\data.json");
+    }
+    directory = await getAppDirectory();
+    return File("${directory.path}/data.json");
   }
 
   static Future<void> saveEntitiesToFile(Iterable<Entity> entities) async {
@@ -49,7 +49,7 @@ String getPrettyJSONString(jsonObject) {
 }
 
 void test() {
-  Vivacissimo.saveEntitiesToFile([
+  VivacissimoService.saveEntitiesToFile([
     badApple,
     alterEgo,
     zun,
