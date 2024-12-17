@@ -3,7 +3,7 @@ import '../models/playlist.dart';
 import '../widgets/commons.dart';
 import '../widgets/constants.dart';
 
-import '../services/vivacissimo.dart';
+import '../../services/vivacissimo_service.dart';
 
 class HomeScreen extends StatefulWidget {
 
@@ -38,9 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const TitleText(data: 'Home'),
+            const TitleText('Home'),
             const SizedBox(height: 8),
-            const SubTitleText(data: 'Recent Playlists'),
+            const BodyText('Recent Playlists'),
             PlaylistList(references: tempPlaylist, onAdd: () {}),
             TextButton(onPressed:() => setState(() {}), child: Text("asdasdasda")),
           ],

@@ -3,14 +3,12 @@ import 'constants.dart';
 
 abstract class AppText extends StatelessWidget {
   final String data;
-  const AppText({super.key, required this.data});
+  const AppText(
+    this.data, {
+    super.key,
+  });
 
-  TextStyle style() {
-    return const TextStyle(
-      fontSize: AppFontSize.body,
-      color: AppColor.textColor,
-    );
-  }
+  TextStyle style();
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +17,10 @@ abstract class AppText extends StatelessWidget {
 }
 
 class TitleText extends AppText {
-  const TitleText({super.key, required super.data});
+  const TitleText(
+    super.data, {
+    super.key,
+  });
 
   @override
   TextStyle style() {
@@ -29,8 +30,12 @@ class TitleText extends AppText {
     );
   }
 }
-class SubTitleText extends AppText {
-  const SubTitleText({super.key, required super.data});
+
+class BodyText extends AppText {
+  const BodyText(
+    super.data, {
+    super.key,
+  });
 
   @override
   TextStyle style() {
