@@ -1,65 +1,61 @@
 import 'package:flutter/material.dart';
-import '../../dummy_data/data.dart';
-import '../../models/entity.dart';
+import '../../models/playlist.dart';
 import '../../widgets/commons.dart';
 import '../../widgets/constants.dart';
-import '../../widgets/tag_grid.dart';
-import '../../models/tag.dart';
 
-class PlaylistNew extends StatefulWidget {
-  const PlaylistNew({super.key});
+import '../../services/vivacissimo.dart';
+
+class HomeScreen extends StatefulWidget {
+
+  const HomeScreen({super.key});
 
   @override
-  State<PlaylistNew> createState() => _PlaylistNewState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _PlaylistNewState extends State<PlaylistNew> {
-  final List<Entity> references = [];
+class _HomeScreenState extends State<HomeScreen> {
+  final List<Playlist> tempPlaylist = [
+    // Playlist(references: [], tags: {}),
+    // Playlist(references: [], tags: {}),
+    // Playlist(references: [], tags: {}),
+    // Playlist(references: [], tags: {}),
+  ];
 
-  List<Tag> _getTags() {
-    List<Tag> tags = [];
-    for (Entity item in references) {
-      if (item is Release) {
-        tags.addAll(item.tags);
-      }
-    }
-    return tags.toSet().toList();
+  @override
+  void initState() {
+    test();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 32.0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const TitleText(data: 'References'),
+          children: <Widget>[
+            const TitleText(data: 'Home'),
             const SizedBox(height: 8),
-            ReferenceList(
-              references: references,
-              onAdd: () {
-                setState(() => references.add(badApple));
-              },
-            ),
-            const SizedBox(height: 8),
-            const TitleText(data: 'Advanced Configure'),
-            const SizedBox(height: 8),
-            TagGrid(tags: _getTags(), name: "Tags")
+            const SubTitleText(data: 'Recent Playlists'),
+            PlaylistList(references: tempPlaylist, onAdd: () {}),
+            TextButton(onPressed:() => setState(() {}), child: Text("asdasdasda")),
           ],
         ),
       ),
     );
   }
 }
-
-class ReferenceList extends StatelessWidget {
-  final List<Entity> references;
+class PlaylistList extends StatelessWidget {
+  final List<Playlist> references;
   final void Function() onAdd;
 
-  static const double itemHeight = 98;
+  static const double itemHeight = 128;
 
-  const ReferenceList({
+  const PlaylistList({
     super.key,
     required this.references,
     required this.onAdd,
@@ -83,21 +79,17 @@ class ReferenceList extends StatelessWidget {
     }
     dynamic item = references[index];
 
-    if (item is Release) {
+    if (item is Playlist) {
       return Container(
         width: itemHeight,
         height: itemHeight,
-        margin: const EdgeInsets.only(right: 16),
+        margin: const EdgeInsets.only(right: 8),
         decoration: BoxDecoration(
-          image: DecorationImage(
-            image: Image.asset(item.image).image,
-            fit: BoxFit.cover,
-          ),
           borderRadius: BorderRadius.circular(4.0),
           border: Border.all(color: AppColor.borderColor),
         ),
         child: Image.asset(
-          item.image,
+          item.imageUrl,
           fit: BoxFit.cover,
         ),
       );

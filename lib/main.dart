@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:vivacissimo/widgets/constants.dart';
-
-import 'screen/playlist/playlist_new.dart';
+import 'screen/playlist/home.dart';
+import 'widgets/constants.dart';
 
 void main() {
   runApp(const MainApp());
@@ -14,7 +13,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(scaffoldBackgroundColor: AppColor.backgroundColor),
-      home: const PlaylistNew(),
+      home: HomeScreen(),
     );
   }
 }

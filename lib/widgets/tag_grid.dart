@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:vivacissimo/model/tag.dart';
-import 'package:vivacissimo/widgets/tag.dart';
-import 'package:vivacissimo/widgets/constants.dart';
+import '../../../vivacissimo_old/lib/model_old/tag.dart';
+import 'commons.dart';
+import 'tag.dart';
+import 'constants.dart';
 
 class TagGrid extends StatefulWidget {
   final String? name;
@@ -42,13 +43,7 @@ class _TagGridState extends State<TagGrid> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text(
-            widget.name!,
-            style: const TextStyle(
-              fontSize: AppFontSize.body,
-              color: AppColor.textColor,
-            ),
-          ),
+          SubTitleText(data: widget.name!),
           const SizedBox(height: 8),
           _buildGrid(context),
         ],

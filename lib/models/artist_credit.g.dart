@@ -7,7 +7,7 @@ part of 'artist_credit.dart';
 // **************************************************************************
 
 ArtistCredit _$ArtistCreditFromJson(Map<String, dynamic> json) => ArtistCredit(
-      prefix: json['prefix'] as String?,
+      prefix: json['prefix'] as String? ?? '',
       parts: (json['parts'] as List<dynamic>)
           .map((e) => ArtistCreditPart.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -21,14 +21,14 @@ Map<String, dynamic> _$ArtistCreditToJson(ArtistCredit instance) =>
 
 ArtistCreditPart _$ArtistCreditPartFromJson(Map<String, dynamic> json) =>
     ArtistCreditPart(
-      Artist.fromJson(json['artist'] as Map<String, dynamic>),
+      json['artistId'] as String,
+      joinPhrase: json['joinPhrase'] as String? ?? ", ",
       credit: json['credit'] as String?,
-      joinPhrase: json['joinPhrase'] as String?,
     );
 
 Map<String, dynamic> _$ArtistCreditPartToJson(ArtistCreditPart instance) =>
     <String, dynamic>{
-      'artist': instance.artist,
+      'artistId': instance.artistId,
       'credit': instance.credit,
       'joinPhrase': instance.joinPhrase,
     };

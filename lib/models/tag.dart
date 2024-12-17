@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'tag.g.dart';
 
+
 enum TagType {
   genre("Genre"),
   subGenre("Sub Genre"),
@@ -16,13 +17,6 @@ enum TagType {
   final String name;
 }
 
-RegExp _normalizePattern = RegExp(r'[^a-z0-9]');
-
-String _normalize(String value) {
-  String lowerCased = value.toLowerCase();
-  return lowerCased.replaceAll(_normalizePattern, '_');
-}
-
 @JsonSerializable()
 class Tag {
   final String id;
@@ -30,12 +24,19 @@ class Tag {
   final String value;
   final TagType type;
 
+  static final RegExp _normalizePattern = RegExp(r'[^a-z0-9]');
+
   Tag({
     String? id,
     required this.name,
     required this.value,
     required this.type,
   }) : id = id ?? _normalize(value);
+
+  static String _normalize(String value) {
+    String lowerCased = value.toLowerCase();
+    return lowerCased.replaceAll(_normalizePattern, '');
+  }
 
   factory Tag.fromJson(Map<String, dynamic> json) => _$TagFromJson(json);
 
