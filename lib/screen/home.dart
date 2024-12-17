@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../models/playlist.dart';
-import '../../widgets/commons.dart';
-import '../../widgets/constants.dart';
+import '../models/playlist.dart';
+import '../widgets/commons.dart';
+import '../widgets/constants.dart';
 
-import '../../services/vivacissimo.dart';
+import '../services/vivacissimo.dart';
 
 class HomeScreen extends StatefulWidget {
 

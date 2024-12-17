@@ -22,7 +22,7 @@ Map<String, dynamic> _$ArtistCreditToJson(ArtistCredit instance) =>
 ArtistCreditPart _$ArtistCreditPartFromJson(Map<String, dynamic> json) =>
     ArtistCreditPart(
       json['artistId'] as String,
-      joinPhrase: json['joinPhrase'] as String? ?? ", ",
+      joinPhrase: json['joinPhrase'] as String? ?? "",
       credit: json['credit'] as String?,
     );
 

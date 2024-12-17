@@ -96,7 +96,7 @@ Release badApple = Release(
   credit: ArtistCredit(
     parts: [ArtistCreditPart(zun.id)],
   ),
-  tagIds: badAppleTags.map((tag) => tag.id).toSet(),
+  tagIds: badAppleTags,
 );
 
 Release alterEgo = Release(
@@ -105,6 +105,6 @@ Release alterEgo = Release(
     ArtistCreditPart(yutaImai.id, joinPhrase: ' vs '),
     ArtistCreditPart(qlarabelle.id),
   ]),
-  tagIds: alterEgoTags.map((tag) => tag.id).toSet(),
+  tagIds: alterEgoTags,
   image: 'assets/dummy/alterEgo.jpg',
 );

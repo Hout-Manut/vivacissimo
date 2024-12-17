@@ -36,7 +36,7 @@ class SubTitleText extends AppText {
   TextStyle style() {
     return const TextStyle(
       fontSize: AppFontSize.body,
-      color: AppColor.textColor,
+      color: AppColor.textSecondaryColor,
     );
   }
 }

@@ -84,7 +84,7 @@ class Artist extends Entity {
 class Release extends Entity {
   final String title;
   final ArtistCredit credit;
-  final Set<String> tagIds;
+  final Set<Tag> tagIds;
   final String image;
 
   Release({
@@ -96,11 +96,11 @@ class Release extends Entity {
     super.entityType = EntityType.release,
   });
 
-  void addTags(Iterable<Tag> tags) {
-    for (Tag tag in tags) {
-      tagIds.add(tag.id);
-    }
-  }
+  // void addTags(Iterable<Tag> tags) {
+  //   for (Tag tag in tags) {
+  //     tagIds.add(tag.id);
+  //   }
+  // }
 
   factory Release.fromJson(Map<String, dynamic> json) => _$ReleaseFromJson(json);
 

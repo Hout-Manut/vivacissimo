@@ -1,40 +1,40 @@
 import 'package:flutter/material.dart';
-import '../../../vivacissimo_old/lib/model_old/tag.dart';
+import '../../models/tag.dart';
 import 'commons.dart';
-import 'tag.dart';
+// import 'tag.dart';
 import 'constants.dart';
 
 class TagGrid extends StatefulWidget {
   final String? name;
-  final List<Tag> tags;
+  final Iterable<(Tag, bool?)> tags;
+  final void Function(Tag, bool) onTagTap;
 
-  const TagGrid({
-    super.key,
-    this.name,
-    required this.tags,
-  });
+  const TagGrid(
+      {super.key, this.name, required this.tags, required this.onTagTap});
 
   @override
   State<TagGrid> createState() => _TagGridState();
 }
 
 class _TagGridState extends State<TagGrid> {
-  Widget _buildItem(
-    BuildContext context,
-    int index,
-    Animation<double> animation,
-  ) {
-    return AnimatedTagPill(tag: widget.tags[index], animation: animation);
+  Iterable<(Tag, bool)> get selectedTags {
+    return widget.tags.where((tag) => tag.$2 != null) as Iterable<(Tag, bool)>;
   }
 
   Widget _buildGrid(BuildContext context) {
-    return Wrap(
-      spacing: 4.0,
-      runSpacing: 4.0,
-      children: widget.tags.map<Widget>((tag) {
-        return TagPill(tag: tag);
-      }).toList(),
-    );
+    Iterable<Widget> children = widget.tags
+        .map<Widget>(
+          (tag) => TagPill(
+            tag,
+            onTap: () {},
+          ),
+        )
+        .toList();
+
+    return Wrap(spacing: 4.0, runSpacing: 4.0, children: [
+      ...children,
+      const AddTag(),
+    ]);
   }
 
   @override
@@ -44,7 +44,7 @@ class _TagGridState extends State<TagGrid> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           SubTitleText(data: widget.name!),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
           _buildGrid(context),
         ],
       );
@@ -54,20 +54,82 @@ class _TagGridState extends State<TagGrid> {
   }
 }
 
-class DraggableTagGrid extends TagGrid {
-  const DraggableTagGrid({
+class AddTag extends StatelessWidget {
+  const AddTag({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Container(
+        height: 34,
+        width: 34,
+        decoration: BoxDecoration(
+          color: AppColor.buttonColor,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0x80000000)),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.add,
+            color: AppColor.textSecondaryColor,
+            size: 14.0,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TagPill extends StatelessWidget {
+  final (Tag, bool?) tag;
+  final void Function() onTap;
+
+  const TagPill(
+    this.tag, {
     super.key,
-    super.name,
-    required super.tags,
+    required this.onTap,
   });
 
   @override
-  State<DraggableTagGrid> createState() => _DraggableTagGridState();
-}
-
-class _DraggableTagGridState extends State<DraggableTagGrid> {
-  @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    Color color;
+    if (tag.$2 == null) {
+      color = AppColor.buttonColor;
+    } else if (tag.$2!) {
+      color = AppColor.buttonActiveColor;
+    } else {
+      color = AppColor.buttonInactiveColor;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 300),
+        alignment: Alignment.centerLeft,
+        curve: Curves.easeOutExpo,
+        child: GestureDetector(
+          key: ValueKey(tag.$1.id), // Keep a consistent key for each tag
+          onTap: onTap,
+          child: Container(
+            margin: const EdgeInsets.only(right: 2.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0x80000000)),
+            ),
+            child: Text(
+              tag.$1.name,
+              style: const TextStyle(
+                color: AppColor.textColor,
+                fontSize: 14.0,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

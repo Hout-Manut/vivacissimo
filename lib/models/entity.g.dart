@@ -41,9 +41,12 @@ const _$EntityTypeEnumMap = {
 };
 
 Release _$ReleaseFromJson(Map<String, dynamic> json) => Release(
+      id: json['id'] as String?,
       title: json['title'] as String,
       credit: ArtistCredit.fromJson(json['credit'] as Map<String, dynamic>),
-      tagIds: (json['tagIds'] as List<dynamic>).map((e) => e as String).toSet(),
+      tagIds: (json['tagIds'] as List<dynamic>)
+          .map((e) => Tag.fromJson(e as Map<String, dynamic>))
+          .toSet(),
       image:
           json['image'] as String? ?? 'assets/playlist-placeholder-small.jpg',
       entityType:
@@ -52,6 +55,7 @@ Release _$ReleaseFromJson(Map<String, dynamic> json) => Release(
     );
 
 Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
+      'id': instance.id,
       'entityType': _$EntityTypeEnumMap[instance.entityType]!,
       'title': instance.title,
       'credit': instance.credit,

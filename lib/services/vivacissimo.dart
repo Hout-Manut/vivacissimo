@@ -39,7 +39,7 @@ class Vivacissimo {
           data['release']!.add(entity.toJson());
       }
     }
-    await file.writeAsString(getPrettyJSONString(data));
+    // await file.writeAsString(getPrettyJSONString(data));
   }
 }
 
