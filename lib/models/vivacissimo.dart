@@ -5,4 +5,8 @@ class Vivacissimo {
 
   List<Playlist> get recentPlaylists {
     final List<Playlist> playlists = _registeredPlaylists;
+
+    // TODO: Implement sorting and categorizing.
+    throw UnimplementedError();
   }
+}

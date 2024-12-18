@@ -13,8 +13,8 @@ enum TagType {
   tempo("Tempo"),
   other("Other");
 
-  const TagType(this.name);
-  final String name;
+  const TagType(this.title);
+  final String title;
 }
 
 @JsonSerializable()

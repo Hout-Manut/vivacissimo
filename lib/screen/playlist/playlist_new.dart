@@ -56,7 +56,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
           // crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 32),
-            const TitleText(data: 'References'),
+            const TitleText('References'),
             const SizedBox(height: 8),
             ReferenceList(
                 references: references,
@@ -69,7 +69,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
                     }),
                 onAdd: onAdd),
             const SizedBox(height: 8),
-            const TitleText(data: 'Advanced Configure'),
+            const TitleText('Advanced Configure'),
             const SizedBox(height: 8),
             TagGrid(
               name: "Genre",

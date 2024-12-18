@@ -11,9 +11,14 @@ dependencies:
     sdk: flutter
   flutter_dotenv: ^5.2.1
   json_annotation: ^4.9.0
+  shared_preferences: ^2.3.0
   uuid: ^4.5.1
 
   cupertino_icons: ^1.0.8
+  path_provider: ^2.1.5
+  file_picker: ^8.1.6
+  http: ^1.2.2
+  google_generative_ai: ^0.4.6
 
 dev_dependencies:
   flutter_test:
@@ -26,5 +31,6 @@ flutter:
   uses-material-design: true
 
   assets:
+  - .env
   - assets/
   - assets/dummy/

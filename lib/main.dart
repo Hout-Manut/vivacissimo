@@ -1,22 +1,36 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'screen/home.dart';
-import 'screen/playlist/playlist_new.dart';
-import 'widgets/constants.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:vivacissimo/services/vivacissimo_service.dart';
 
-
-
-void main() {
+Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
+  Future<void> yes() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      print(file.path);
+    } else {
+      // User canceled the picker
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    test();
     return MaterialApp(
-      theme: ThemeData(scaffoldBackgroundColor: AppColor.backgroundColor),
-      home: PlaylistNew(),
+      // theme: ThemeData(scaffoldBackgroundColor: AppColor.backgroundColor),
+      home: Scaffold(body: Center(child: ElevatedButton(onPressed: () {yes();}, child: Text("yess")),),)
     );
   }
 }

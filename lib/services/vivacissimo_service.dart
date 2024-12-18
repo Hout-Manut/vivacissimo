@@ -1,8 +1,6 @@
-import 'dart:convert';
-
-import 'windows.dart' if (dart.library.ui) 'mobile.dart';
-
 import 'dart:io';
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
 import '../dummy_data/data.dart';
 import '../models/models.dart';
 
@@ -13,13 +11,11 @@ class VivacissimoService {
     } on UnsupportedError {
       return null;
     }
-    Directory directory;
-    if (Platform.isWindows) {
-      directory = await getAppDirectory();
-      return File("${directory.path}\\data.json");
+    Directory directory = await getApplicationDocumentsDirectory();
+    if (directory.existsSync()) {
+      await directory.create(recursive: true);
     }
-    directory = await getAppDirectory();
-    return File("${directory.path}/data.json");
+    return File('${directory.path}/structure.json');
   }
 
   static Future<void> saveEntitiesToFile(Iterable<Entity> entities) async {
@@ -39,7 +35,7 @@ class VivacissimoService {
           data['release']!.add(entity.toJson());
       }
     }
-    // await file.writeAsString(getPrettyJSONString(data));
+    await file.writeAsString(getPrettyJSONString(data));
   }
 }
 
