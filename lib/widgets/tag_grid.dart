@@ -31,10 +31,13 @@ class _TagGridState extends State<TagGrid> {
         )
         .toList();
 
-    return Wrap(spacing: 4.0, runSpacing: 4.0, children: [
-      ...children,
-      const AddTag(),
-    ]);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Wrap(spacing: 4.0, runSpacing: 4.0, children: [
+        ...children,
+        const AddTag(),
+      ]),
+    );
   }
 
   @override
@@ -102,9 +105,7 @@ class TagPill extends StatelessWidget {
       color = AppColor.buttonInactiveColor;
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: AnimatedSize(
+    return AnimatedSize(
         duration: const Duration(milliseconds: 300),
         alignment: Alignment.centerLeft,
         curve: Curves.easeOutExpo,
@@ -129,7 +130,6 @@ class TagPill extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

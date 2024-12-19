@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:vivacissimo/screen/playlist/playlist_new.dart';
 import 'package:vivacissimo/services/vivacissimo_service.dart';
+import 'package:vivacissimo/widgets/constants.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
@@ -27,10 +29,10 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    test();
+    // test();
     return MaterialApp(
-      // theme: ThemeData(scaffoldBackgroundColor: AppColor.backgroundColor),
-      home: Scaffold(body: Center(child: ElevatedButton(onPressed: () {yes();}, child: Text("yess")),),)
+      theme: ThemeData(scaffoldBackgroundColor: AppColor.backgroundColor),
+      home: PlaylistNew(),
     );
   }
 }
