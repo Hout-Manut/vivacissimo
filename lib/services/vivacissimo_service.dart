@@ -5,16 +5,32 @@ import '../dummy_data/data.dart';
 import '../models/models.dart';
 
 class VivacissimoService {
-  static Future<File?> getEntityFile() async {
+
+
+  static Future<Directory?> getAppDirectory() async {
     try {
-      print(Platform.operatingSystem);
+      Platform.operatingSystem;
     } on UnsupportedError {
       return null;
     }
-    Directory directory = await getApplicationDocumentsDirectory();
-    if (directory.existsSync()) {
-      await directory.create(recursive: true);
+
+    try {
+      Directory baseDirectory = await getApplicationDocumentsDirectory();
+      Directory appDirectory = Directory('${baseDirectory.path}/vivacissimo');
+
+      if (!appDirectory.existsSync()) {
+        await appDirectory.create(recursive: true);
+      }
+      return appDirectory;
+    } catch (e) {
+      return null;
     }
+  }
+
+
+  static Future<File?> getEntityFile() async {
+    Directory? directory = await getAppDirectory();
+    if (directory == null) return null;
     return File('${directory.path}/structure.json');
   }
 

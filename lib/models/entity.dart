@@ -7,8 +7,12 @@ import 'artist_credit.dart';
 part 'entity.g.dart';
 
 enum EntityType {
-  artist,
-  release;
+  artist('artist'),
+  release('release');
+
+  const EntityType(this.mbName);
+
+  final String mbName;
 }
 
 enum ReleaseType {
@@ -102,12 +106,12 @@ class Release extends Entity {
   //   }
   // }
 
-  factory Release.fromJson(Map<String, dynamic> json) => _$ReleaseFromJson(json);
+  factory Release.fromJson(Map<String, dynamic> json) =>
+      _$ReleaseFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ReleaseToJson(this);
 }
-
 
 // void example() {
 //    final artist = Artist(
