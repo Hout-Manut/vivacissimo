@@ -34,10 +34,11 @@ enum ArtistType {
 sealed class Entity {
   final String id;
   final EntityType entityType;
+  final Set<Tag> tags;
 
   static const Uuid uuid = Uuid();
 
-  Entity({String? id, required this.entityType}) : id = id ?? Entity.uuid.v4();
+  Entity({String? id, required this.entityType, required this.tags}) : id = id ?? Entity.uuid.v4();
 
   factory Entity.fromJson(Map<String, dynamic> json) {
     switch (json['entityType']) {
@@ -74,6 +75,7 @@ class Artist extends Entity {
     required this.name,
     required this.sortName,
     required this.type,
+    required super.tags,
     this.description,
     super.entityType = EntityType.artist,
   });
@@ -88,14 +90,13 @@ class Artist extends Entity {
 class Release extends Entity {
   final String title;
   final ArtistCredit credit;
-  final Set<Tag> tagIds;
   final String image;
 
   Release({
     super.id,
     required this.title,
     required this.credit,
-    required this.tagIds,
+    required super.tags,
     this.image = 'assets/playlist-placeholder-small.jpg',
     super.entityType = EntityType.release,
   });

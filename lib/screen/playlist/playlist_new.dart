@@ -15,15 +15,18 @@ class PlaylistNew extends StatefulWidget {
 
 class _PlaylistNewState extends State<PlaylistNew> {
   final List<Entity> references = [];
+  final Map<Tag, bool> selectedTags = {};
   Entity? target;
 
   Set<(Tag, bool?)> _getTags() {
     Set<(Tag, bool?)> tags = {};
+    Set<Tag> selected = selectedTags.keys.toSet();
+    selectedTags.forEach((key, value) => tags.add((key, value)));
     if (target == null) return tags;
     if (target is Release) {
       Release yes = target as Release;
-      for (Tag tag in yes.tagIds) {
-        tags.add((tag, null));
+      for (Tag tag in yes.tags) {
+        if (!selected.contains(tag)) tags.add((tag, null));
       }
     }
     return tags;
@@ -46,9 +49,36 @@ class _PlaylistNewState extends State<PlaylistNew> {
     index = index + 1;
   }
 
+  List<(Tag, bool?)> _filterAndSortTags(Set<(Tag, bool?)> tags, TagType type) {
+    return tags.where((tag) => tag.$1.type == type).toList()
+      ..sort((a, b) {
+        if (a.$2 == b.$2) return 0;
+        if (a.$2 == true) return -1;
+        if (b.$2 == true) return 1;
+        if (a.$2 == false) return -1;
+        if (b.$2 == false) return 1;
+        return 0;
+      });
+  }
+
+  void onTagTap(Tag target) {
+    if (selectedTags.containsKey(target)) {
+      if (selectedTags[target]!) {
+        selectedTags[target] = false;
+      } else {
+        selectedTags.remove(target);
+      }
+    } else {
+      selectedTags[target] = true;
+    }
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     Set<(Tag, bool?)> tags = _getTags();
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -73,43 +103,43 @@ class _PlaylistNewState extends State<PlaylistNew> {
             const SizedBox(height: 8),
             TagGrid(
               name: "Genre",
-              tags: tags.where((tag) => tag.$1.type == TagType.genre),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.genre),
+              onTagTap: onTagTap,
             ),
             TagGrid(
               name: "Sub-Genre",
-              tags: tags.where((tag) => tag.$1.type == TagType.subGenre),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.subGenre),
+              onTagTap: onTagTap,
             ),
             TagGrid(
               name: "Language",
-              tags: tags.where((tag) => tag.$1.type == TagType.language),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.language),
+              onTagTap: onTagTap,
             ),
             TagGrid(
               name: "Vibe",
-              tags: tags.where((tag) => tag.$1.type == TagType.vibe),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.vibe),
+              onTagTap: onTagTap,
             ),
             TagGrid(
               name: "Instruments",
-              tags: tags.where((tag) => tag.$1.type == TagType.instruments),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.instruments),
+              onTagTap: onTagTap,
             ),
             TagGrid(
               name: "Vocals",
-              tags: tags.where((tag) => tag.$1.type == TagType.vocals),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.vocals),
+              onTagTap: onTagTap,
             ),
             TagGrid(
               name: "Tempo",
-              tags: tags.where((tag) => tag.$1.type == TagType.tempo),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.tempo),
+              onTagTap: onTagTap,
             ),
             TagGrid(
               name: "Other",
-              tags: tags.where((tag) => tag.$1.type == TagType.other),
-              onTagTap: (p0, p1) => (),
+              tags: _filterAndSortTags(tags, TagType.other),
+              onTagTap: onTagTap,
             ),
             const SizedBox(height: 32),
           ],

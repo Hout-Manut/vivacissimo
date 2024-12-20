@@ -7,7 +7,7 @@ import 'constants.dart';
 class TagGrid extends StatefulWidget {
   final String? name;
   final Iterable<(Tag, bool?)> tags;
-  final void Function(Tag, bool) onTagTap;
+  final void Function(Tag) onTagTap;
 
   const TagGrid(
       {super.key, this.name, required this.tags, required this.onTagTap});
@@ -21,12 +21,13 @@ class _TagGridState extends State<TagGrid> {
     return widget.tags.where((tag) => tag.$2 != null) as Iterable<(Tag, bool)>;
   }
 
+
   Widget _buildGrid(BuildContext context) {
     Iterable<Widget> children = widget.tags
         .map<Widget>(
           (tag) => TagPill(
             tag,
-            onTap: () {},
+            onTap: () => widget.onTagTap(tag.$1),
           ),
         )
         .toList();
@@ -110,7 +111,7 @@ class TagPill extends StatelessWidget {
         alignment: Alignment.centerLeft,
         curve: Curves.easeOutExpo,
         child: GestureDetector(
-          key: ValueKey(tag.$1.id), // Keep a consistent key for each tag
+          key: ValueKey(tag.$1.id),
           onTap: onTap,
           child: Container(
             margin: const EdgeInsets.only(right: 2.0),

@@ -3,10 +3,12 @@ import '../models/entity.dart';
 import '../models/artist_credit.dart';
 
 Artist zun = Artist(
-    name: 'ZUN',
-    sortName: 'ZUN',
-    id: 'b8155f6d-7852-4486-97d9-1b7fdda3fa08',
-    type: ArtistType.person);
+  name: 'ZUN',
+  sortName: 'ZUN',
+  id: 'b8155f6d-7852-4486-97d9-1b7fdda3fa08',
+  type: ArtistType.person,
+  tags: {},
+);
 
 Artist qlarabelle = Artist(
   name: "Qlarabelle",
@@ -14,6 +16,7 @@ Artist qlarabelle = Artist(
   id: '9b0ddf37-f745-4e01-a16d-3de98eb82bb4',
   description: "Yuta Imai alias, Hard Dance",
   type: ArtistType.person,
+  tags: {},
 );
 
 Artist yutaImai = Artist(
@@ -22,6 +25,7 @@ Artist yutaImai = Artist(
   id: 'b17e8126-7642-44a8-a311-6fb6546cf672',
   // aliases: [qlarabelle],
   type: ArtistType.person,
+  tags: {},
 );
 
 Set<Tag> badAppleTags = {
@@ -96,7 +100,7 @@ Release badApple = Release(
   credit: ArtistCredit(
     parts: [ArtistCreditPart(zun.id)],
   ),
-  tagIds: badAppleTags,
+  tags: badAppleTags,
 );
 
 Release alterEgo = Release(
@@ -105,6 +109,6 @@ Release alterEgo = Release(
     ArtistCreditPart(yutaImai.id, joinPhrase: ' vs '),
     ArtistCreditPart(qlarabelle.id),
   ]),
-  tagIds: alterEgoTags,
+  tags: alterEgoTags,
   image: 'assets/dummy/alterEgo.jpg',
 );

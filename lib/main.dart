@@ -7,7 +7,7 @@ import 'package:vivacissimo/services/vivacissimo_service.dart';
 import 'package:vivacissimo/widgets/constants.dart';
 
 Future<void> main() async {
-  await dotenv.load(fileName: ".env");
+  // await dotenv.load(fileName: ".env");
   runApp(const MainApp());
 }
 
