@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColor {
+  static const Color primaryColor = Color(0xFFDA7B92);
   static const Color backgroundColor = Color(0xFF181818);
   static const Color buttonColor = Color(0xFF2f2f2f);
   static const Color buttonSelectedColor = Color(0xFF606060);
@@ -9,8 +10,8 @@ class AppColor {
   static const Color textColor = Color(0xFFFFFFFF);
   static const Color textSecondaryColor = Color(0xFFA4A4A4);
   static const Color borderColor = Color(0x80000000);
+  static const Color errorColor = Color(0x80ff3333);
 }
-
 class AppFontSize {
   /// 16.0
   static const double body = 16.0;

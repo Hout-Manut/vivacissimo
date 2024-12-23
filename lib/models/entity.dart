@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:vivacissimo/services/vivacissimo.dart';
 import 'tag.dart';
 
 import 'artist_credit.dart';
@@ -34,11 +35,13 @@ enum ArtistType {
 sealed class Entity {
   final String id;
   final EntityType entityType;
+  @JsonKey(toJson: _tagsToIds, fromJson: _idsToTags, name: "tagIds")
   final Set<Tag> tags;
 
   static const Uuid uuid = Uuid();
 
-  Entity({String? id, required this.entityType, required this.tags}) : id = id ?? Entity.uuid.v4();
+  Entity({String? id, required this.entityType, required this.tags})
+      : id = id ?? Entity.uuid.v4();
 
   factory Entity.fromJson(Map<String, dynamic> json) {
     switch (json['entityType']) {
@@ -61,6 +64,20 @@ sealed class Entity {
         return _$ReleaseToJson(this as Release);
     }
   }
+
+  static List<String> _tagsToIds(Set<Tag> tags) {
+    return tags.map((tag) => tag.id).toList();
+  }
+
+  static Set<Tag> _idsToTags(List<String> ids) {
+    return ids
+        .map((id) =>
+            Vivacissimo.getTagById(id) ??
+            Tag(name: id, value: id, type: TagType.other))
+        .toSet();
+  }
+
+  String toPrompt();
 }
 
 @JsonSerializable()
@@ -74,16 +91,31 @@ class Artist extends Entity {
     super.id,
     required this.name,
     required this.sortName,
-    required this.type,
     required super.tags,
+    this.type = ArtistType.person,
     this.description,
     super.entityType = EntityType.artist,
   });
 
   factory Artist.fromJson(Map<String, dynamic> json) => _$ArtistFromJson(json);
 
+  factory Artist.fromMusicBrainz(Map<String, dynamic> json) {
+    return Artist(name: json['name']!, sortName: json['sort-name']!, tags: {});
+  }
+
   @override
   Map<String, dynamic> toJson() => _$ArtistToJson(this);
+
+  @override
+  String toPrompt() {
+    final sb = StringBuffer()
+      ..writeln(
+          "I want you to break down this artist for related tags/attributes So I can use them to look recommendations")
+      ..writeln("The song name is $name")
+      ..writeln(
+          "Please return about 10 - 15 tags of the artist's recent or popular works.");
+    return sb.toString().trim();
+  }
 }
 
 @JsonSerializable()
@@ -101,50 +133,32 @@ class Release extends Entity {
     super.entityType = EntityType.release,
   });
 
-  // void addTags(Iterable<Tag> tags) {
-  //   for (Tag tag in tags) {
-  //     tagIds.add(tag.id);
-  //   }
-  // }
+  factory Release.fromMusicBrainz(Map<String, dynamic> json) {
+    return Release(
+      id: json['id'],
+      title: json['title'],
+      credit: ArtistCredit.fromMusicBrainz(json['artist-credit']),
+      tags: {},
+    );
+  }
+
+  void addTags(Iterable<Tag> tags) {
+    this.tags.addAll(tags);
+  }
 
   factory Release.fromJson(Map<String, dynamic> json) =>
       _$ReleaseFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ReleaseToJson(this);
+
+  @override
+  String toPrompt() {
+    final sb = StringBuffer()
+      ..writeln(
+          "I want you to break down this song for related tags/attributes So I can use them to look recommendations")
+      ..writeln("The song name is $title by ${credit.toString()}")
+      ..writeln("Please return about 10 - 15 tags.");
+    return sb.toString().trim();
+  }
 }
-
-// void example() {
-//    final artist = Artist(
-//     name: "Jane Smith",
-//     sortName: "Smith, Jane",
-//     type: ArtistType.person,
-//     description: "A talented singer.",
-//   );
-
-//   final release = Release(
-//     title: "Top Tracks",
-//     credit: ArtistCredit(parts: [ArtistCreditPart(artist)]),
-//     image: "assets/top-tracks.jpg",
-//   );
-
-//   final artistJson = artist.toJson();
-//   final releaseJsonString = jsonEncode(release.toJson());
-//   final releaseJson = jsonDecode(releaseJsonString);
-
-//   // print(releaseJson);
-
-//   final deserializedArtist = Artist.fromJson(artistJson);
-//   final deserializedRelease = Release.fromJson(releaseJson);
-
-//   // Validate Artist
-//   assert(deserializedArtist.name == "Jane Smith");
-//   assert(deserializedArtist.sortName == "Smith, Jane");
-//   assert(deserializedArtist.type == ArtistType.person);
-//   assert(deserializedArtist.description == "A talented singer.");
-
-//   // Validate Release
-//   assert(deserializedRelease.title == "Top Tracks");
-//   assert(deserializedRelease.credit.parts[0].artist.name == artist.name);
-//   assert(deserializedRelease.image == "assets/top-tracks.jpg");
-// }

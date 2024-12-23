@@ -1,3 +1,5 @@
+import 'package:vivacissimo/models/models.dart';
+
 import '../models/tag.dart';
 import '../models/entity.dart';
 import '../models/artist_credit.dart';
@@ -94,21 +96,54 @@ Set<Tag> alterEgoTags = {
 };
 
 Release badApple = Release(
-  id: '715a50b2-7525-3dbd-9d67-e0ed13d4c4b6',
+  id: '53e1af22-a21e-4b11-aca1-d04cc3fc71ec',
   title: "Bad Apple!!",
   image: 'assets/dummy/badApple.jpg',
   credit: ArtistCredit(
-    parts: [ArtistCreditPart(zun.id)],
+    parts: [ArtistCreditPart(artist: zun)],
   ),
   tags: badAppleTags,
 );
 
 Release alterEgo = Release(
+  id: '50e4d838-d428-470e-9622-945f04339f02',
   title: "Alter Ego",
   credit: ArtistCredit(parts: [
-    ArtistCreditPart(yutaImai.id, joinPhrase: ' vs '),
-    ArtistCreditPart(qlarabelle.id),
+    ArtistCreditPart(artist: yutaImai, joinPhrase: ' vs '),
+    ArtistCreditPart(artist: qlarabelle),
   ]),
   tags: alterEgoTags,
   image: 'assets/dummy/alterEgo.jpg',
+);
+
+Playlist aPlaylist = Playlist(
+  title: "Arcaea Sound Collection: Memories of Light",
+  imageUrl: "assets/image 4.png",
+  releases: [],
+  preferences: {
+    "more": [Tag(name: "J-Pop", value: "J-Pop", type: TagType.genre)]
+  },
+  config: {},
+  references: [
+    Release(
+      title: "UNDEAD",
+      credit: ArtistCredit(
+        parts: [
+          ArtistCreditPart(
+              artist: Artist(name: "YOASOBI", sortName: "YOASOBI", tags: {}))
+        ],
+      ),
+      tags: {},
+    ),
+    Release(
+      title: "Idol",
+      credit: ArtistCredit(
+        parts: [
+          ArtistCreditPart(
+              artist: Artist(name: "YOASOBI", sortName: "YOASOBI", tags: {}))
+        ],
+      ),
+      tags: {},
+    ),
+  ],
 );

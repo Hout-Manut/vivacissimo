@@ -115,7 +115,7 @@ class AnimatedTagPill extends StatelessWidget {
               tag.name,
               style: const TextStyle(
                 color: AppColor.textColor,
-                fontSize: 12.0,
+                fontSize: AppFontSize.caption,
               ),
             ),
           ),

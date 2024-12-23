@@ -38,7 +38,15 @@ class Tag {
     return lowerCased.replaceAll(_normalizePattern, '');
   }
 
+  @override
+  bool operator == (covariant Tag other) {
+    return id == other.id;
+  }
+
   factory Tag.fromJson(Map<String, dynamic> json) => _$TagFromJson(json);
 
   Map<String, dynamic> toJson() => _$TagToJson(this);
+
+  @override
+  int get hashCode => Object.hash(id, name, value, type);
 }

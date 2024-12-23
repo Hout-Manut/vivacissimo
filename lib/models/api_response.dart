@@ -17,41 +17,66 @@ class ApiResponse {
     properties: {
       "title": Schema.string(
         description:
-            "The title of the release, in their original language if there is.",
+            "The title of the release. This will also be used to query MusicBrainz api for additional informations.",
         nullable: false,
       ),
-      "searchTerm": Schema.string(
-        description: "A searchable term, usually the title in english.",
-        nullable: false,
-      ),
-      "tags": Schema.array(
+      "artist": Schema.string(
         description:
-            "An array of tags related to the release. Each tags should be 1 to 2 words in length, except genre and subgenre",
+            'The combined credited artist name for the release, including join phrases (e.g. "Artist X feat.", "x join phrase y") AKA whats displayed',
         nullable: false,
-        items: tagSchema,
-      )
+      ),
+      "tags": tagsSchema,
     },
-    requiredProperties: ['title', 'searchTerm', 'tags'],
+    requiredProperties: ['title', 'artist', 'tags'],
   );
 
-  static final Schema tagSchema = Schema.object(
-    properties: {
-      "name": Schema.string(
-        description: "The display name.",
-        nullable: false,
-      ),
-      "value": Schema.string(
-        description:
-            "The internal value. Should be the same as name even the case, except if the name is too general that it might confused with another tag",
-        nullable: false,
-      ),
-      "type": Schema.enumString(
-        description: "The tag category",
-        enumValues: TagType.values.map((tag) => tag.name).toList(),
-        nullable: false,
-      ),
-    },
-    requiredProperties: ['name', 'value', 'type'],
+  static final Schema tagsSchema = Schema.array(
+    description:
+        """An array of tags related to the entity. Try to find 15 or more. Each tags should be 1 to 2 words in length, except genre and subgenre use normal genre names for those.
+
+          Example for tags a release/song `ALTER EGO` by `Yuta Imai vs Qlarabelle` parenthesis not included
+
+          Genre: Hardstyle, Game Music
+          Sub Genre: Electronic
+          Language: Japanese (origin), English (vocal samples)
+          Vibe: Melancholic
+          Instruments: Synthesizer
+          Vocals: Vocal Samples
+          Tempo: High, Steady
+          Other: Arcaea
+
+          Another example for `Bad Apple` by `nomico`
+
+          Genre: Touhou, Game Music
+          Sub Genre: Electronic, Doujin Music
+          Language: Japanese,
+          Vibe: Melancholic, Nostalgic
+          Instruments: Synthesizer, Drum Machine
+          Vocals: Vocaloid
+          Tempo: Medium, Steady
+          Other: Touhou Project, ZUN, Iconic, Fan Favorite
+        """,
+    nullable: false,
+    items: Schema.object(
+      description: "",
+      properties: {
+        "name": Schema.string(
+          description: "The display name. Should be Capitalized except if they are names",
+          nullable: false,
+        ),
+        "value": Schema.string(
+          description:
+              "The internal value. Should be the same as name even the case, except if the name is too general that it might confused with another tag",
+          nullable: false,
+        ),
+        "type": Schema.enumString(
+          description: "The tag category",
+          enumValues: TagType.values.map((tag) => tag.name).toList(),
+          nullable: false,
+        ),
+      },
+      requiredProperties: ['name', 'value', 'type'],
+    ),
   );
 
   static final Schema artistSchema = Schema.object(
@@ -70,10 +95,7 @@ class ApiResponse {
         enumValues: ArtistType.values.map((tag) => tag.name).toList(),
         nullable: false,
       ),
-      "tags": Schema.array(
-        description: "The tags should be the tags related to their releases.",
-        items: tagSchema,
-      ),
+      "tags": tagsSchema,
       "description": Schema.string(
         description:
             "A description/note of the artist. not required. Usually to tell if the artist is an alias of someone else.",

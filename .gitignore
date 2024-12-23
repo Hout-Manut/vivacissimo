@@ -54,6 +54,7 @@ web/
 windows/
 
 *.test.dart
+a.out
 
 # generative codes
 *.g.dart

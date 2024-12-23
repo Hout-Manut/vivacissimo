@@ -36,7 +36,7 @@ class _TagGridState extends State<TagGrid> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Wrap(spacing: 4.0, runSpacing: 4.0, children: [
         ...children,
-        const AddTag(),
+        // const AddTag(),
       ]),
     );
   }
@@ -116,7 +116,7 @@ class TagPill extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.only(right: 2.0),
             padding:
-                const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
+                const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(6),
