@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:vivacissimo/models/entity.dart';
 import 'dart:io';
 
+import 'package:vivacissimo/services/cache.dart';
+import 'package:vivacissimo/services/vivacissimo.dart';
+
 class MusicbrainzApi {
   static const String _endpoint = 'https://musicbrainz.org/ws/2';
   static const String _coverArtEndpoint = 'https://coverartarchive.org';
@@ -18,7 +21,7 @@ class MusicbrainzApi {
 
     for (Release release in results) {
       return release;
-      // print("${release.title} - ${release.credit}");
+      // printDebug("${release.title} - ${release.credit}");
       // if (release.title.toLowerCase() == title.toLowerCase() &&
       //     release.credit.toString().toLowerCase() == artist.toLowerCase()) {
       //   return release;
@@ -51,6 +54,7 @@ class MusicbrainzApi {
       return [];
     } else {
       combinations.add("release:${queryParts[0]}");
+      combinations.add("artist:${queryParts[0]}");
     }
 
     final List<Future<http.Response>> requests =
@@ -71,6 +75,7 @@ class MusicbrainzApi {
       if (data["releases"] == null) continue;
       for (Map<String, dynamic> release in data['releases']) {
         if (addedIds.contains(release['id'])) continue;
+        // printDebug(release);
         releases.add(Release.fromMusicBrainz(release));
         addedIds.add(release['id']);
       }
@@ -82,40 +87,46 @@ class MusicbrainzApi {
     String mbid, {
     String dimension = '1200',
   }) async {
-    final Uri uri = Uri.parse('$_coverArtEndpoint/release/$mbid');
+    return await Cache.cacheAsync<String, String?>(
+      'getImageUrl_imageUrl_$mbid',
+      () async {
+        final Uri uri = Uri.parse('$_coverArtEndpoint/release/$mbid');
 
-    final tempHeader = {
-      'User-Agent': headers['User-Agent']!,
-      'Accept': 'application/json',
-    };
+        final tempHeader = {
+          'User-Agent': headers['User-Agent']!,
+          'Accept': 'application/json',
+        };
 
-    try {
-      final response = await http.get(uri, headers: tempHeader);
+        try {
+          final response = await http.get(uri, headers: tempHeader);
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['images'] != null && data['images'].isNotEmpty) {
-          for (var image in data['images']) {
-            if (image['thumbnails'] != null) {
-              return image['thumbnails'][dimension] ??
-                  image['thumbnails']['large'] ??
-                  image['thumbnails']['500'] ??
-                  image['thumbnails']['small'];
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            if (data['images'] != null && data['images'].isNotEmpty) {
+              for (var image in data['images']) {
+                if (image['thumbnails'] != null) {
+                  return image['thumbnails'][dimension] ??
+                      image['thumbnails']['large'] ??
+                      image['thumbnails']['500'] ??
+                      image['thumbnails']['small'];
+                }
+              }
+            } else {
+              throw const HttpException("No Image Found");
             }
+          } else if (response.statusCode == 404) {
+            throw const HttpException("No Image Found");
+          } else {
+            throw HttpException(
+                "Failed with status code: ${response.statusCode}");
           }
-        } else {
-          throw const HttpException("No Image Found");
+        } catch (e) {
+          return null;
         }
-      } else if (response.statusCode == 404) {
-        throw const HttpException("No Image Found");
-      } else {
-        throw HttpException;
-      }
-    } catch (e) {
-      print(e);
-    }
 
-    return null;
+        return null;
+      },
+    );
   }
 
   static Future<String?> getImageUrlAlt(String mbid) async {

@@ -1,42 +1,71 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:vivacissimo/dummy_data/data.dart';
 import 'package:vivacissimo/services/api/gemini_api.dart';
 import '../models/models.dart';
 
+void printDebug(Object object) {
+  if (kDebugMode) debugPrint(object.toString());
+}
+
 class Vivacissimo {
   static const String _releaseFilename = "releases.json";
-  static final List<Release> _savedReleases = [];
-  static List<Release> get releases => _savedReleases;
+  static final Set<Release> _savedReleases = {};
+  static Set<Release> get releases => _savedReleases;
 
   static const String _artistFilename = "artists.json";
-  static final List<Artist> _savedArtists = [];
-  static List<Artist> get artists => _savedArtists;
+  static final Set<Artist> _savedArtists = {};
+  static Set<Artist> get artists => _savedArtists;
 
   static const String _playlistFilename = "playlists.json";
-  static final List<Playlist> _savedPlaylists = [aPlaylist];
-  static List<Playlist> get playlists => _savedPlaylists;
+  static final Set<Playlist> _savedPlaylists = {};
+  static Set<Playlist> get playlists => _savedPlaylists;
 
   static const String _tagFilename = "tags.json";
-  static final List<Tag> _savedTags = [];
-  static List<Tag> get tags => _savedTags;
+  static final Set<Tag> _savedTags = {};
+  static Set<Tag> get tags => _savedTags;
 
   static bool loaded = false;
+  static Future<void>? _loadingFuture;
 
   static const JsonEncoder encoder = JsonEncoder.withIndent("  ");
 
-  static void setPlaylist(Playlist newPlaylist) {
-    int? oldIndex;
-    _savedPlaylists.asMap().forEach((index, item) {
-      if (item.id == newPlaylist.id) oldIndex = index;
-    });
-    if (oldIndex == null) {
-      _savedPlaylists.add(newPlaylist);
+  static void addPlaylist(Playlist newPlaylist) {
+    _savedPlaylists.add(newPlaylist);
+    _savedReleases.addAll(newPlaylist.releases);
+    saveData();
+  }
+
+  static Future<void> saveImage(PlatformFile file, String fileName) async {
+    Directory? appDirectory = await getAppDirectory("/images");
+    if (appDirectory == null) return;
+
+    File image = File(file.path!);
+
+    String newPath = '${appDirectory.path}/$fileName';
+    try {
+      await image.copy(newPath);
+      printDebug('Image saved to $newPath');
+    } catch (e) {
+      printDebug('Error saving image: $e');
+    }
+  }
+
+  static Future<void> askForPermission() async {
+    PermissionStatus status = await Permission.photos.status;
+    if (status.isDenied) {
+      debugPrint("storage permission ===$status");
+
+      await Permission.photos.request();
+      // await Permission.storage.request();
+      // await Permission.storage.request();
+      // await Permission.storage.request();
     } else {
-      _savedPlaylists[oldIndex!] = newPlaylist;
+      debugPrint("permission storage $status");
     }
   }
 
@@ -73,6 +102,18 @@ class Vivacissimo {
   }
 
   static Future<void> loadData() async {
+    if (_loadingFuture != null) {
+      return _loadingFuture;
+    }
+    if (loaded) return;
+
+    _loadingFuture = _loadDataInternal();
+    await _loadingFuture;
+
+    _loadingFuture = null;
+  }
+
+  static Future<void> _loadDataInternal() async {
     final Directory? data = await getAppDirectory("/data");
     if (data == null) return;
     if (loaded) return;
@@ -114,7 +155,7 @@ class Vivacissimo {
       _savedTags.addAll(jsonData.map((json) => Tag.fromJson(json)));
     });
     loaded = true;
-    print("Data was loaded");
+    printDebug("Data was loaded");
   }
 
   static void saveData() async {
@@ -147,32 +188,50 @@ class Vivacissimo {
     await tagFile.writeAsString(
         encoder.convert(_savedTags.map((t) => t.toJson()).toList()),
         encoding: utf8);
-    print("Data saved");
+    printDebug("Data saved");
+  }
+
+  static Future<void> deleteFile(String path) async {
+    File file = File(path);
+    if (await file.exists()) {
+      try {
+        await file.delete(recursive: true);
+        printDebug('Deleted file: $path');
+      } catch (e) {
+        printDebug('Error deleting file $path: $e');
+      }
+    } else {
+      printDebug('File $path does not exist.');
+    }
   }
 
   static void deleteData() async {
-    Directory? data = await getAppDirectory("/data");
+    Directory? data = await getAppDirectory();
+    if (data == null) return;
+    try {
+      if (await data.exists()) {
+        for (FileSystemEntity entity in data.listSync()) {
+          try {
+            await entity.delete(recursive: true);
+            printDebug('Deleted: ${entity.path}');
+          } catch (e) {
+            printDebug('Failed to delete ${entity.path}: $e');
+          }
+        }
+        printDebug('All data in directory deleted successfully.');
+      } else {
+        printDebug('Directory does not exist.');
+      }
+    } catch (e) {
+      printDebug('Error while deleting data: $e');
+    }
+  }
+
+  static void deleteImage(String filename) async {
+    Directory? data = await getAppDirectory("/images");
     if (data == null) return;
 
-    // Helper function to delete a file
-    Future<void> deleteFile(String filename) async {
-      File file = File('${data.path}/$filename');
-      if (await file.exists()) {
-        try {
-          await file.delete();
-          print('Deleted file: $filename');
-        } catch (e) {
-          print('Error deleting file $filename: $e');
-        }
-      } else {
-        print('File $filename does not exist.');
-      }
-    }
-
-    await deleteFile(_releaseFilename);
-    await deleteFile(_artistFilename);
-    await deleteFile(_playlistFilename);
-    await deleteFile(_tagFilename);
+    await deleteFile('${data.path}/$filename');
   }
 
   static Future<Directory?> getAppDirectory([String path = ""]) async {
@@ -195,19 +254,22 @@ class Vivacissimo {
     }
   }
 
-  static Future<File> getImageFile(String id,
-      {required EntityType type}) async {
+  static Future<File> getImageFile(
+    String imageName, {
+    EntityType? type,
+  }) async {
     final Directory? images = await getAppDirectory("/images");
     if (images == null) {
       switch (type) {
         case EntityType.artist:
           return File("assets/artist_placeholder.jpg");
         case EntityType.release:
+        case null:
           return File("assets/release_placeholder.jpg");
       }
     }
 
-    final File imageFile = File('${images.path}/$id.jpg');
+    final File imageFile = File('${images.path}/$imageName');
     if (await imageFile.exists()) {
       return imageFile;
     } else {
@@ -215,6 +277,8 @@ class Vivacissimo {
         case EntityType.artist:
           return File("assets/artist_placeholder.jpg");
         case EntityType.release:
+          return File("assets/release_placeholder.jpg");
+        case null:
           return File("assets/release_placeholder.jpg");
       }
     }
@@ -228,7 +292,7 @@ class Vivacissimo {
     playlist.releases.clear();
     playlist.releases.addAll(releases);
 
-    setPlaylist(playlist);
+    addPlaylist(playlist);
 
     return playlist;
   }
@@ -239,10 +303,15 @@ class Vivacissimo {
 
     switch (entity) {
       case Artist():
-        _savedArtists.add(entity);
+        if (!_savedArtists.contains(entity)) {
+          _savedArtists.add(entity);
+        }
       case Release():
-        _savedReleases.add(entity);
+        if (!_savedReleases.contains(entity)) {
+          _savedReleases.add(entity);
+        }
     }
+    saveData();
     return entity;
   }
 }
@@ -250,12 +319,4 @@ class Vivacissimo {
 String getPrettyJSONString(jsonObject) {
   const JsonEncoder encoder = JsonEncoder.withIndent("  ");
   return encoder.convert(jsonObject);
-}
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  runApp(MaterialApp());
-
-  await Vivacissimo.getNewSongsForPlaylist(aPlaylist);
 }

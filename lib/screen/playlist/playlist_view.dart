@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:vivacissimo/models/models.dart';
+import 'package:vivacissimo/screen/playlist/playlist_new.dart';
 import 'package:vivacissimo/services/vivacissimo.dart';
+import 'package:vivacissimo/widgets/commons.dart';
 import 'package:vivacissimo/widgets/constants.dart';
 
 class PlaylistView extends StatefulWidget {
@@ -18,8 +22,34 @@ class PlaylistView extends StatefulWidget {
 class _PlaylistViewState extends State<PlaylistView> {
   final ScrollController _scrollController = ScrollController();
 
+  String? imagePath;
+  AssetOrFileImage? _coverImageCache;
+  bool coverImageChanged = false;
+
+  Widget? get coverImage {
+    if (_coverImageCache == null) {
+      return null;
+    } else if (coverImageChanged) {
+      refreshCoverImage();
+    }
+    return _coverImageCache;
+  }
+
+  void refreshCoverImage() {
+    _coverImageCache = AssetOrFileImage(
+      imageName: widget.playlist.imageUrl,
+      isAsset: widget.playlist.imageIsAsset,
+    );
+    coverImageChanged = false;
+  }
+
   @override
   void initState() {
+    if (!widget.playlist.imageIsAsset) {
+      loadImagePath();
+    }
+    refreshCoverImage();
+
     super.initState();
     _scrollController.addListener(_onScroll);
   }
@@ -28,6 +58,47 @@ class _PlaylistViewState extends State<PlaylistView> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> loadImagePath() async {
+    final Directory? appDirectory =
+        await Vivacissimo.getAppDirectory('/images');
+    if (appDirectory == null) return;
+    setState(() {
+      imagePath = '${appDirectory.path}/${widget.playlist.imageUrl}';
+    });
+  }
+
+  DecorationImage? buildBackground() {
+    if (widget.playlist.imageIsAsset) {
+      return DecorationImage(
+        image: AssetImage(widget.playlist.imageUrl),
+        fit: BoxFit.cover,
+      );
+    } else if (imagePath == null) {
+      return null;
+    } else {
+      return DecorationImage(
+        image: FileImage(File(imagePath!)),
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
+  void moreOptions() async {
+    String? option = await showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: AppColor.backgroundColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+              ),
+            ),
+          );
+        });
   }
 
   bool _isLoading = false;
@@ -43,6 +114,17 @@ class _PlaylistViewState extends State<PlaylistView> {
     });
   }
 
+  void onEdit() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) {
+        return PlaylistNew(editItem: widget.playlist);
+      }),
+    );
+    setState(() {
+      coverImageChanged = true;
+    });
+  }
+
   static const List<double> _thresholds = [10, 50, 100];
   static const List<int> _alphas = [0, 20, 120, 255];
 
@@ -53,15 +135,13 @@ class _PlaylistViewState extends State<PlaylistView> {
     final double offset = _scrollController.offset;
 
     int alpha;
+    _showTitle = false;
     if (offset < _thresholds[0]) {
       alpha = _alphas[0];
-      _showTitle = false;
     } else if (offset < _thresholds[1]) {
       alpha = _alphas[1];
-      _showTitle = false;
     } else if (offset < _thresholds[2]) {
       alpha = _alphas[2];
-      _showTitle = false;
     } else {
       alpha = _alphas[3];
       _showTitle = true;
@@ -114,30 +194,32 @@ class _PlaylistViewState extends State<PlaylistView> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final gradientStartHeight = min(1 - (300 / screenHeight), 0.5);
     return Scaffold(
       body: Stack(
         alignment: Alignment.topCenter,
         children: [
           Positioned(
             top: -50,
-            child: Container(
-              width: screenWidth * 1.6,
-              height: screenWidth * 1.6,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(widget.playlist.imageUrl),
-                  fit: BoxFit.cover,
+            child: Opacity(
+              opacity: 0.7,
+              child: Container(
+                width: screenWidth * 1.6,
+                height: screenWidth * 1.6,
+                decoration: BoxDecoration(
+                  image: buildBackground(),
                 ),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 20,
-                  sigmaY: 20,
-                ),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.ease,
-                  color: _appBarColor,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 20,
+                    sigmaY: 20,
+                  ),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.ease,
+                    color: _appBarColor,
+                  ),
                 ),
               ),
             ),
@@ -233,7 +315,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
-                        stops: const [0.5, 1],
+                        stops: [gradientStartHeight, 1],
                         colors: [
                           AppColor.backgroundColor,
                           AppColor.backgroundColor.withAlpha(0),
@@ -252,7 +334,8 @@ class _PlaylistViewState extends State<PlaylistView> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
-                              constraints: const BoxConstraints(maxWidth: 240),
+                              constraints: const BoxConstraints(
+                                  maxHeight: 240, minHeight: 240),
                               clipBehavior: Clip.antiAlias,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(4),
@@ -264,10 +347,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                   ),
                                 ],
                               ),
-                              child: Image.asset(
-                                widget.playlist.imageUrl,
-                                fit: BoxFit.cover,
-                              ),
+                              child: coverImage,
                             ),
                             const SizedBox(height: 40),
                             Column(
@@ -305,7 +385,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                                 BorderRadius.circular(8),
                                             child: InkWell(
                                               onTap: () {
-                                                print("tapped");
+                                                onEdit();
                                               },
                                               borderRadius: BorderRadius.circular(
                                                   8), // Matches the Container's borderRadius
@@ -458,10 +538,11 @@ class PlaylistItems extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: releases.length * 64,
+      height: releases.length * 80,
       child: ReorderableListView.builder(
-        shrinkWrap: true,
+        // shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        buildDefaultDragHandles: false,
         itemCount: releases.length,
         onReorder: onReorder,
         proxyDecorator: (child, index, animation) {
@@ -469,7 +550,6 @@ class PlaylistItems extends StatelessWidget {
         },
         itemBuilder: (context, index) {
           final item = releases[index];
-
           return Dismissible(
             key: ValueKey("${item.id}$index"),
             onDismissed: (direction) {
@@ -484,52 +564,60 @@ class PlaylistItems extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            child: Container(
-              width: double.infinity,
-              margin: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 16,
-                    child: Text(
-                      (index + 1).toString(),
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        color: AppColor.textColor,
-                        fontSize: 12,
+            child: ReorderableDragStartListener(
+              index: index,
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal:  8, vertical: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.only(top: 2),
+                      width: 16,
+                      child: Text(
+                        (index + 1).toString(),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          color: AppColor.textColor,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          item.title,
-                          style: const TextStyle(
-                            color: AppColor.textColor,
-                            fontSize: 12,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            item.title,
+                            style: const TextStyle(
+                              color: AppColor.textColor,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.credit.toString(),
-                          style: const TextStyle(
-                            color: AppColor.textColor,
-                            fontSize: 10,
+                          const SizedBox(height: 4),
+                          Text(
+                            item.credit.toString(),
+                            style: const TextStyle(
+                              color: AppColor.textSecondaryColor,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.drag_handle_rounded,
-                    color: AppColor.textSecondaryColor,
-                    size: 14,
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4.0),
+                      child: Icon(
+                        Icons.drag_handle_rounded,
+                        color: AppColor.textSecondaryColor,
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );

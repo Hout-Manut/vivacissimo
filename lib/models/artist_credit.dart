@@ -71,6 +71,6 @@ class ArtistCreditPart {
   static String _artistToId(Artist artist) => artist.id;
 
   static Artist _idToArtist(String id) {
-    return Vivacissimo.getArtistById(id) ?? Artist(name: "Unknown", sortName: "Unknown", tags: {});
+    return Vivacissimo.getArtistById(id) ?? Artist(id: "unknown-artist", name: "Unknown", sortName: "Unknown", tags: {});
   }
 }

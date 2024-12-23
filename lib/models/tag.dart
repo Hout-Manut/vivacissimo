@@ -48,5 +48,5 @@ class Tag {
   Map<String, dynamic> toJson() => _$TagToJson(this);
 
   @override
-  int get hashCode => Object.hash(id, name, value, type);
+  int get hashCode => id.hashCode;
 }

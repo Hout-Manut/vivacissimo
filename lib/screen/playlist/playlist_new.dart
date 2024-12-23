@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
-import 'package:http/http.dart' as http;
 import 'package:vivacissimo/models/playlist.dart';
 import 'package:vivacissimo/screen/playlist/entity_search_modal.dart';
 import 'package:vivacissimo/services/api/musicbrainz_api.dart';
@@ -28,11 +26,14 @@ class _PlaylistNewState extends State<PlaylistNew> {
   final List<Entity> references = [];
   final Map<Tag, bool> selectedTags = {};
   Entity? target;
-  File? image;
+  String? imageName;
+  bool imageIsAsset = false;
+  File? loadedImage;
 
   late final bool isCreating;
   late final String id;
   DateTime? createdDate;
+  bool submitted = false;
 
   int length = 20;
   bool allowExplicit = true;
@@ -50,9 +51,43 @@ class _PlaylistNewState extends State<PlaylistNew> {
   }
 
   TextEditingController nameController = TextEditingController();
+  String get name {
+    String value = nameController.text;
+    if (value.isEmpty) {
+      return "Unnamed Playlist";
+    }
+    return value;
+  }
 
   void onSubmit() {
-    // Playlist newPlaylist = Playlist(id: id, title)
+    List<Tag> prefer = [];
+    List<Tag> notPrefer = [];
+    selectedTags.forEach((key, value) {
+    if (value) {
+      prefer.add(key);
+    } else {
+      notPrefer.add(key);
+    }
+  });
+
+    Playlist newPlaylist = Playlist(
+      id: id,
+      title: name,
+      allowExplicit: allowExplicit,
+      imageUrl: imageName,
+      length: length,
+      popularity: popularity,
+      discovery: discovery,
+      preferences: {
+        "more": prefer,
+        "less": notPrefer,
+      },
+      references: references,
+      dateCreated: createdDate
+    );
+    Vivacissimo.addPlaylist(newPlaylist);
+    submitted = true;
+    Navigator.pop(context);
   }
 
   @override
@@ -63,10 +98,15 @@ class _PlaylistNewState extends State<PlaylistNew> {
 
       id = oldItem.id;
 
-      length = oldItem.config.length;
-      allowExplicit = oldItem.config["allowExplicit"];
-      popularity = oldItem.config["popular"];
-      discovery = oldItem.config["discover"];
+      length = oldItem.length;
+      allowExplicit = oldItem.allowExplicit;
+      popularity = oldItem.popularity;
+      discovery = oldItem.discovery;
+
+      imageName = oldItem.imageUrl;
+
+      nameController.text = oldItem.title;
+      imageIsAsset = oldItem.imageIsAsset;
 
       createdDate = oldItem.dateCreated;
       references.addAll(oldItem.references);
@@ -78,6 +118,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
       for (Tag oldTag in oldItem.preferences['less']!) {
         selectedTags[oldTag] = false;
       }
+      loadImage();
     } else {
       isCreating = true;
       id = uuid.v4();
@@ -87,6 +128,9 @@ class _PlaylistNewState extends State<PlaylistNew> {
 
   @override
   void dispose() {
+    if (!submitted && imageName != null && !imageIsAsset) {
+      Vivacissimo.deleteImage(imageName!);
+    }
     nameController.dispose();
     super.dispose();
   }
@@ -151,17 +195,50 @@ class _PlaylistNewState extends State<PlaylistNew> {
   }
 
   Future<void> addImage() async {
+    await Vivacissimo.askForPermission();
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
     );
 
     if (result != null) {
-      image = File(result.files.single.path!);
-      print(image!.absolute.path);
+      imageIsAsset = false;
+      PlatformFile image = result.files.first;
+
+      imageName = '$id.${image.extension}';
+      await Vivacissimo.saveImage(image, imageName!);
+      loadImage();
       setState(() {});
     } else {
       //
     }
+  }
+
+  Future<void> loadImage() async {
+    if (imageIsAsset) return;
+    loadedImage = await Vivacissimo.getImageFile(
+      imageName!,
+    );
+    setState(() {});
+  }
+
+  Widget buildPlaylistImage() {
+    if (imageName == null) {
+      return Material(
+        color: AppColor.buttonColor,
+        borderRadius: BorderRadius.circular(4),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(4),
+          onTap: addImage,
+          child: const SizedBox(
+            width: 98,
+            child: Center(
+              child: Icon(Icons.add),
+            ),
+          ),
+        ),
+      );
+    }
+    return AssetOrFileImage(imageName: imageName!, isAsset: imageIsAsset);
   }
 
   void onTagTap(Tag target) {
@@ -328,10 +405,49 @@ class _PlaylistNewState extends State<PlaylistNew> {
                           controller: nameController,
                           hintText: "The playlist name"),
                       const SizedBox(height: 32),
-                      const BodyText("Description"),
-                      const SizedBox(height: 4),
-                      AppTextField(controller: nameController, hintText: "..."),
-                      const SizedBox(height: 128),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(text: "Max length: "),
+                                TextSpan(
+                                    text: length.toString(),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w500)),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppButton(
+                                onTap: () => setState(() {
+                                  if (length > 5) length--;
+                                }),
+                                child: const Icon(
+                                  Icons.remove,
+                                  color: AppColor.textColor,
+                                  size: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              AppButton(
+                                onTap: () => setState(() {
+                                  if (length < 50) length++;
+                                }),
+                                child: const Icon(
+                                  Icons.add,
+                                  color: AppColor.textColor,
+                                  size: 16,
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 32),
                       const BodyText("Popularity"),
                       const SizedBox(height: 4),
                       SizedBox(
@@ -408,49 +524,6 @@ class _PlaylistNewState extends State<PlaylistNew> {
                       )
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            const TextSpan(text: "Max length: "),
-                            TextSpan(
-                                text: length.toString(),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500)),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AppButton(
-                            onTap: () => setState(() {
-                              if (length > 5) length--;
-                            }),
-                            child: const Icon(
-                              Icons.remove,
-                              color: AppColor.textColor,
-                              size: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          AppButton(
-                            onTap: () => setState(() {
-                              if (length < 50) length++;
-                            }),
-                            child: const Icon(
-                              Icons.add,
-                              color: AppColor.textColor,
-                              size: 16,
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
                   const SizedBox(height: 16),
                   const BodyText("Image"),
                   const SizedBox(height: 8),
@@ -459,28 +532,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        image == null
-                            ? Material(
-                                color: AppColor.buttonColor,
-                                borderRadius: BorderRadius.circular(4),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(4),
-                                  onTap: addImage,
-                                  child: const SizedBox(
-                                    width: 98,
-                                    child: Center(
-                                      child: Icon(Icons.add),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : Container(
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Image.file(image!),
-                              ),
+                        buildPlaylistImage(),
                       ],
                     ),
                   ),
@@ -496,7 +548,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
                   borderRadius: BorderRadius.circular(4),
                   color: AppColor.primaryColor,
                   child: InkWell(
-                    onTap: () {},
+                    onTap: onSubmit,
                     borderRadius: BorderRadius.circular(4),
                     child: SizedBox(
                       width: 150,
@@ -522,7 +574,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
   }
 }
 
-class ReferenceList extends StatefulWidget {
+class ReferenceList extends StatelessWidget {
   final List<Entity> references;
   final void Function(Entity) onEntityTap;
   final void Function(Entity) onEntityHold;
@@ -538,145 +590,129 @@ class ReferenceList extends StatefulWidget {
     required this.onEntityHold,
   });
 
-  @override
-  State<ReferenceList> createState() => _ReferenceListState();
-}
-
-class _ReferenceListState extends State<ReferenceList> {
-  Map<String, String?> imageUrls = {};
-
-  bool isLoading = true;
-
-  Future<void> fetchImage(String id) async {
-    final String? imagePath = await MusicbrainzApi.getImageUrl(id);
-    setState(() {
-      imageUrls[id] = imagePath;
-    });
+  Future<String?> getImageUrl(Entity entity) async {
+    return await MusicbrainzApi.getImageUrl(entity.id);
   }
 
-  Future<bool> checkImageUrl(String url) async {
-    try {
-      final response = await http.head(Uri.parse(url));
-      if (response.statusCode == 404) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Widget _buildList(BuildContext context, int index) {
-    if (index == widget.references.length) {
-      return SizedBox(
-        height: ReferenceList.itemHeight,
-        child: Center(
-          child: IconButton(
-            onPressed: widget.onAdd,
-            icon: const Icon(
-              Icons.add,
-              size: AppFontSize.title,
-              color: AppColor.textColor,
-            ),
-          ),
-        ),
-      );
-    }
-    Entity item = widget.references[index];
-    fetchImage(item.id);
-
-    if (item is Release) {
-      return GestureDetector(
-        onTap: () => widget.onEntityTap(item),
-        onLongPress: () => widget.onEntityHold(item),
-        child: Container(
-          width: ReferenceList.itemHeight,
-          height: ReferenceList.itemHeight,
-          clipBehavior: Clip.antiAlias,
-          margin: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          child: imageUrls[item.id] == null
-              ? const Center(
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      color: AppColor.primaryColor,
-                    ),
-                  ),
-                )
-              : FutureBuilder<bool>(
-                  future: checkImageUrl(imageUrls[item.id]!),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: CircularProgressIndicator(
-                            color: AppColor.primaryColor,
-                          ),
+  List<Widget> buildList() {
+    List<Widget> items = [];
+    for (Entity entity in references) {
+      switch (entity) {
+        case Artist():
+          // TODO: Handle this case.
+          throw UnimplementedError();
+        case Release():
+          items.add(
+            Container(
+              width: itemHeight,
+              height: itemHeight,
+              clipBehavior: Clip.antiAlias,
+              margin: const EdgeInsets.only(right: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4.0),
+              ),
+              child: Stack(
+                children: [
+                  FutureBuilder(
+                    initialData: const Center(
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(
+                          color: AppColor.primaryColor,
                         ),
-                      );
-                    }
-
-                    if (snapshot.hasData && snapshot.data == false) {
-                      return Image.asset(
-                        'assets/playlist-placeholder-small.jpg',
-                        fit: BoxFit.cover,
-                      );
-                    }
-
-                    return Image.network(
-                      imageUrls[item.id]!,
-                      headers: MusicbrainzApi.headers,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, obj, stackTrace) {
-                        return Image.asset(
-                          'assets/playlist-placeholder-small.jpg',
-                          fit: BoxFit.cover,
-                        );
-                      },
-                      loadingBuilder: (context, widget, progress) {
-                        if (progress == null) return widget;
-                        int? total = progress.expectedTotalBytes;
-                        double? percentage;
-                        if (total != null) {
-                          percentage = progress.cumulativeBytesLoaded / total;
-                        } else {
-                          percentage = null;
-                        }
-                        return Center(
+                      ),
+                    ),
+                    future: getImageUrl(entity),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
                           child: SizedBox(
                             width: 32,
                             height: 32,
                             child: CircularProgressIndicator(
-                              value: percentage,
                               color: AppColor.primaryColor,
                             ),
                           ),
                         );
-                      },
-                    );
-                  },
-                ),
-        ),
-      );
-    }
+                      }
 
-    return const Placeholder();
+                      if (snapshot.data == null || snapshot.hasError) {
+                        return Image.asset(
+                          'assets/playlist-placeholder-small.jpg',
+                          fit: BoxFit.cover,
+                        );
+                      }
+                      return Image.network(
+                        snapshot.data as String,
+                        headers: MusicbrainzApi.headers,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, obj, stackTrace) {
+                          return Image.asset(
+                            'assets/playlist-placeholder-small.jpg',
+                            fit: BoxFit.cover,
+                          );
+                        },
+                        loadingBuilder: (context, widget, progress) {
+                          if (progress == null) return widget;
+                          int? total = progress.expectedTotalBytes;
+                          double? percentage;
+                          if (total != null) {
+                            percentage = progress.cumulativeBytesLoaded / total;
+                          } else {
+                            percentage = null;
+                          }
+                          return Center(
+                            child: SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: CircularProgressIndicator(
+                                value: percentage,
+                                color: AppColor.primaryColor,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => onEntityTap(entity),
+                      onLongPress: () => onEntityHold(entity),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+      }
+    }
+    return items;
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: ReferenceList.itemHeight,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: widget.references.length + 1,
-        itemBuilder: _buildList,
+      height: itemHeight,
+      child: Row(
+        children: [
+          ...buildList(),
+          SizedBox(
+            height: itemHeight,
+            child: Center(
+              child: IconButton(
+                onPressed: onAdd,
+                icon: const Icon(
+                  Icons.add,
+                  size: AppFontSize.title,
+                  color: AppColor.textColor,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

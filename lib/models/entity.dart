@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:vivacissimo/models/models.dart';
 import 'package:vivacissimo/services/vivacissimo.dart';
 import 'tag.dart';
 
@@ -40,8 +41,7 @@ sealed class Entity {
 
   static const Uuid uuid = Uuid();
 
-  Entity({String? id, required this.entityType, required this.tags})
-      : id = id ?? Entity.uuid.v4();
+  Entity({required this.id, required this.entityType, required this.tags});
 
   factory Entity.fromJson(Map<String, dynamic> json) {
     switch (json['entityType']) {
@@ -69,7 +69,7 @@ sealed class Entity {
     return tags.map((tag) => tag.id).toList();
   }
 
-  static Set<Tag> _idsToTags(List<String> ids) {
+  static Set<Tag> _idsToTags(List<dynamic> ids) {
     return ids
         .map((id) =>
             Vivacissimo.getTagById(id) ??
@@ -78,6 +78,14 @@ sealed class Entity {
   }
 
   String toPrompt();
+
+  @override
+  bool operator ==(covariant Entity other) {
+    return id == other.id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 @JsonSerializable()
@@ -88,7 +96,7 @@ class Artist extends Entity {
   final String? description;
 
   Artist({
-    super.id,
+    required super.id,
     required this.name,
     required this.sortName,
     required super.tags,
@@ -100,7 +108,12 @@ class Artist extends Entity {
   factory Artist.fromJson(Map<String, dynamic> json) => _$ArtistFromJson(json);
 
   factory Artist.fromMusicBrainz(Map<String, dynamic> json) {
-    return Artist(name: json['name']!, sortName: json['sort-name']!, tags: {});
+    return Artist(
+      id: json['id'],
+      name: json['name']!,
+      sortName: json['sort-name']!,
+      tags: {},
+    );
   }
 
   @override
@@ -125,7 +138,7 @@ class Release extends Entity {
   final String image;
 
   Release({
-    super.id,
+    required super.id,
     required this.title,
     required this.credit,
     required super.tags,

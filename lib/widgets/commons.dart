@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:vivacissimo/services/vivacissimo.dart';
 import 'constants.dart';
 
 abstract class AppText extends StatelessWidget {
@@ -124,6 +127,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
+      style: const TextStyle(color: AppColor.textColor),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: AppColor.textSecondaryColor),
@@ -134,6 +138,81 @@ class AppTextField extends StatelessWidget {
           borderSide: BorderSide(color: AppColor.primaryColor),
         ),
       ),
+    );
+  }
+}
+
+class AssetOrFileImage extends StatelessWidget {
+  final String imageName; // The image file name
+  final bool isAsset; // Whether the image is an asset or a file
+  final double? width; // Width of the image
+  final double? height; // Height of the image
+  final BoxFit fit; // BoxFit for the image
+  final double borderRadius;
+
+  const AssetOrFileImage({
+    super.key,
+    required this.imageName,
+    required this.isAsset,
+    this.width,
+    this.height,
+    this.borderRadius = 8,
+    this.fit = BoxFit.cover,
+  });
+
+  Future<Widget> _loadImage() async {
+    if (isAsset) {
+      return Image.asset(
+        imageName,
+        width: width,
+        height: height,
+        fit: fit,
+      );
+    } else {
+      final Directory? appDirectory =
+          await Vivacissimo.getAppDirectory('/images');
+      if (appDirectory == null) return const Icon(Icons.image_not_supported);
+      final filePath = '${appDirectory.path}/$imageName';
+      return Image.file(
+        File(filePath),
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final BoxDecoration decoration = BoxDecoration(
+      borderRadius: BorderRadius.circular(borderRadius),
+      color: Colors.grey.shade200,
+    );
+    return FutureBuilder<Widget>(
+      future: _loadImage(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            width: width,
+            height: height,
+            decoration: decoration,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasError) {
+          return Container(
+            width: width,
+            height: height,
+            decoration: decoration,
+            child: const Center(child: Icon(Icons.error)),
+          );
+        } else if (snapshot.hasData) {
+          return snapshot.data!;
+        } else {
+          return Container(
+            width: width,
+            height: height,
+            decoration: decoration,
+          );
+        }
+      },
     );
   }
 }

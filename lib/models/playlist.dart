@@ -36,9 +36,13 @@ class Playlist {
     name: "releasesIds",
   )
   final List<Release> releases = [];
-  final Map<String, dynamic> config;
   final DateTime dateCreated;
-  final String imageUrl;
+  late final String imageUrl;
+  final bool allowExplicit;
+  final bool? popularity;
+  final bool? discovery;
+  final int length;
+  final bool imageIsAsset;
 
   void addTags({required List<Tag> tags, required String key}) {
     preferences[key]!.addAll(tags);
@@ -51,17 +55,21 @@ class Playlist {
   }
 
   Playlist({
-    String? id,
+    required this.id,
     this.title = "A Playlist",
     this.credit = "Various Artists",
-    this.imageUrl = "assets/playlist-placeholder-small.jpg",
+    String? imageUrl,
     DateTime? dateCreated,
     List<Entity>? references,
     List<Release>? releases,
     Map<String, List<Tag>>? preferences,
-    required this.config,
-  })  : dateCreated = dateCreated ?? DateTime.now(),
-        id = id ?? Entity.uuid.v4() {
+    this.allowExplicit = true,
+    this.popularity,
+    this.discovery,
+    this.length = 30,
+    this.imageIsAsset = false,
+  }) : dateCreated = dateCreated ?? DateTime.now() {
+    this.imageUrl = imageUrl ?? "assets/playlist-placeholder-small.jpg";
     this.references.addAll(references ?? []);
     this.releases.addAll(releases ?? []);
 
@@ -72,6 +80,15 @@ class Playlist {
       this.preferences["less"]!.addAll(lessTags);
     }
   }
+
+  @override
+  bool operator ==(covariant Playlist other) {
+    return id == other.id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+
   factory Playlist.fromJson(Map<String, dynamic> json) =>
       _$PlaylistFromJson(json);
 
@@ -130,6 +147,7 @@ class Playlist {
               Vivacissimo.getReleaseById(id) ??
               Vivacissimo.getArtistById(id) ??
               Release(
+                id: "unknown-release",
                 title: "Unknown Entity",
                 credit: const ArtistCredit(parts: []),
                 tags: {},
@@ -144,6 +162,7 @@ class Playlist {
           (id) =>
               Vivacissimo.getReleaseById(id) ??
               Release(
+                id: "unknown-artist",
                 title: "Unknown Entity",
                 credit: const ArtistCredit(parts: []),
                 tags: {},
@@ -153,7 +172,7 @@ class Playlist {
   }
 
   String get isExplicitStr {
-    if (config["allowExplicit"] ?? true) {
+    if (allowExplicit) {
       return "allows explicit songs";
     } else {
       return "does not allow explicit songs";
@@ -161,10 +180,9 @@ class Playlist {
   }
 
   String get popularityStr {
-    bool? popular = config["popular"];
-    if (popular == null) {
+    if (popularity == null) {
       return "a mix of popular, well known songs and other non-popular songs.";
-    } else if (popular) {
+    } else if (popularity!) {
       return "a playlist more focused on popular and well known songs.";
     } else {
       return "to see less known, obscure songs.";
@@ -217,8 +235,6 @@ class Playlist {
     str = str + preferences['less']!.map((tag) => tag.value).join(", ");
     return str;
   }
-
-  int get length => config["length"] ?? 30;
 
   String toPrompt() {
     final sb = StringBuffer()

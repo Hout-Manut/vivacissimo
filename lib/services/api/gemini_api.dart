@@ -5,6 +5,7 @@ import 'package:vivacissimo/models/api_response.dart';
 import 'package:vivacissimo/models/models.dart';
 import 'package:vivacissimo/services/api/musicbrainz_api.dart';
 import 'package:pool/pool.dart';
+import 'package:vivacissimo/services/vivacissimo.dart';
 
 class GeminiApi {
   late final String _apiKey;
@@ -25,6 +26,8 @@ class GeminiApi {
           responseMimeType: 'application/json',
           responseSchema: ApiResponse.releaseListSchema),
     );
+
+    printDebug(prompt);
 
     final GenerateContentResponse response = await model.generateContent(
       [Content.text(prompt)],
@@ -68,7 +71,7 @@ class GeminiApi {
 
   Future<T> describeEntity<T extends Entity>(T entity) async {
     final String prompt = entity.toPrompt();
-    print(prompt);
+    printDebug(prompt);
     final GenerativeModel model = GenerativeModel(
       model: 'gemini-1.5-flash-latest',
       apiKey: _apiKey,

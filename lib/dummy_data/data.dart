@@ -117,30 +117,41 @@ Release alterEgo = Release(
 );
 
 Playlist aPlaylist = Playlist(
+  id: "iashdkjahdskjh",
   title: "Arcaea Sound Collection: Memories of Light",
   imageUrl: "assets/image 4.png",
   releases: [],
+  imageIsAsset: true,
   preferences: {
     "more": [Tag(name: "J-Pop", value: "J-Pop", type: TagType.genre)]
   },
-  config: {},
   references: [
     Release(
+      id: "UNDEAD",
       title: "UNDEAD",
       credit: ArtistCredit(
         parts: [
           ArtistCreditPart(
-              artist: Artist(name: "YOASOBI", sortName: "YOASOBI", tags: {}))
+              artist: Artist(
+                  id: "YOASOBI",
+                  name: "YOASOBI",
+                  sortName: "YOASOBI",
+                  tags: {}))
         ],
       ),
       tags: {},
     ),
     Release(
+      id: "Idol",
       title: "Idol",
       credit: ArtistCredit(
         parts: [
           ArtistCreditPart(
-              artist: Artist(name: "YOASOBI", sortName: "YOASOBI", tags: {}))
+              artist: Artist(
+                  id: "YOASOBI",
+                  name: "YOASOBI",
+                  sortName: "YOASOBI",
+                  tags: {}))
         ],
       ),
       tags: {},
