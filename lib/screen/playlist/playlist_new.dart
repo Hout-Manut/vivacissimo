@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 import 'package:vivacissimo/models/playlist.dart';
@@ -48,7 +49,11 @@ class _PlaylistNewState extends State<PlaylistNew> {
     }
   }
 
-  void onSubmit() {}
+  TextEditingController nameController = TextEditingController();
+
+  void onSubmit() {
+    // Playlist newPlaylist = Playlist(id: id, title)
+  }
 
   @override
   void initState() {
@@ -78,6 +83,12 @@ class _PlaylistNewState extends State<PlaylistNew> {
       id = uuid.v4();
     }
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
   }
 
   Set<(Tag, bool?)> _getTags() {
@@ -311,6 +322,16 @@ class _PlaylistNewState extends State<PlaylistNew> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      const BodyText("Name"),
+                      const SizedBox(height: 4),
+                      AppTextField(
+                          controller: nameController,
+                          hintText: "The playlist name"),
+                      const SizedBox(height: 32),
+                      const BodyText("Description"),
+                      const SizedBox(height: 4),
+                      AppTextField(controller: nameController, hintText: "..."),
+                      const SizedBox(height: 128),
                       const BodyText("Popularity"),
                       const SizedBox(height: 4),
                       SizedBox(
@@ -454,11 +475,10 @@ class _PlaylistNewState extends State<PlaylistNew> {
                                 ),
                               )
                             : Container(
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(
-
+                                clipBehavior: Clip.antiAlias,
+                                decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(4),
-                              ),
+                                ),
                                 child: Image.file(image!),
                               ),
                       ],

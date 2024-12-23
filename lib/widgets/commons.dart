@@ -109,3 +109,31 @@ class AppButton extends StatelessWidget {
     );
   }
 }
+
+class AppTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+
+  const AppTextField({
+    super.key,
+    required this.controller,
+    required this.hintText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(color: AppColor.textSecondaryColor),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: AppColor.textSecondaryColor),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: AppColor.primaryColor),
+        ),
+      ),
+    );
+  }
+}

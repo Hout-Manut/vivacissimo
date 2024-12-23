@@ -70,7 +70,7 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
     if (debounce?.isActive ?? false) {
       debounce!.cancel();
     }
-    debounce = Timer(const Duration(milliseconds: 1000), () => search());
+    debounce = Timer(const Duration(milliseconds: 2000), () => search());
 
     if (controller.text.isEmpty) {
       state = SearchState.idle;
