@@ -368,6 +368,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: ListView(
+                clipBehavior: Clip.none,
                 children: [
                   const SizedBox(height: 32),
                   LargeTitleText(

@@ -10,6 +10,7 @@ Artist zun = Artist(
   id: 'b8155f6d-7852-4486-97d9-1b7fdda3fa08',
   type: ArtistType.person,
   tags: {},
+  releasesJson: [],
 );
 
 Artist qlarabelle = Artist(
@@ -19,6 +20,7 @@ Artist qlarabelle = Artist(
   description: "Yuta Imai alias, Hard Dance",
   type: ArtistType.person,
   tags: {},
+  releasesJson: [],
 );
 
 Artist yutaImai = Artist(
@@ -28,6 +30,7 @@ Artist yutaImai = Artist(
   // aliases: [qlarabelle],
   type: ArtistType.person,
   tags: {},
+  releasesJson: [],
 );
 
 Set<Tag> badAppleTags = {
@@ -136,6 +139,7 @@ Playlist aPlaylist = Playlist(
                   id: "YOASOBI",
                   name: "YOASOBI",
                   sortName: "YOASOBI",
+                  releasesJson: [],
                   tags: {}))
         ],
       ),
@@ -151,6 +155,7 @@ Playlist aPlaylist = Playlist(
                   id: "YOASOBI",
                   name: "YOASOBI",
                   sortName: "YOASOBI",
+                  releasesJson: [],
                   tags: {}))
         ],
       ),

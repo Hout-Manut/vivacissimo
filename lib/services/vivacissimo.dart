@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:vivacissimo/dummy_data/data.dart';
 import 'package:vivacissimo/services/api/gemini_api.dart';
+import 'package:vivacissimo/services/api/musicbrainz_api.dart';
 import '../models/models.dart';
 
 void printDebug(Object object) {
@@ -37,6 +37,23 @@ class Vivacissimo {
   static void addPlaylist(Playlist newPlaylist) {
     _savedPlaylists.add(newPlaylist);
     _savedReleases.addAll(newPlaylist.releases);
+    for (Release release in newPlaylist.releases) {
+      _savedTags.addAll(release.tags);
+    }
+    saveData();
+  }
+
+  static void newArtistsFromCredit(ArtistCredit credit) async {
+    for (ArtistCreditPart artist in credit.parts) {
+      printDebug("Adding artist: ${artist.artist.name}");
+      printDebug("id: ${artist.artist.id}");
+      String newId = artist.artist.id;
+      if (_savedArtists.where((artist) => artist.id == newId).isEmpty) {
+        Artist? newArtist = await MusicbrainzApi.searchArtistById(newId);
+        if (newArtist == null) continue;
+        _savedArtists.add(newArtist);
+      }
+    }
     saveData();
   }
 
@@ -299,6 +316,7 @@ class Vivacissimo {
 
   static Future<T> newEntity<T extends Entity>(T entity) async {
     GeminiApi api = GeminiApi();
+    printDebug("New entity pending add: $entity");
     entity = await api.describeEntity(entity);
 
     switch (entity) {
@@ -307,10 +325,14 @@ class Vivacissimo {
           _savedArtists.add(entity);
         }
       case Release():
+          newArtistsFromCredit(entity.credit);
         if (!_savedReleases.contains(entity)) {
           _savedReleases.add(entity);
         }
     }
+
+    _savedTags.addAll(entity.tags);
+    printDebug("New entity added: $entity");
     saveData();
     return entity;
   }

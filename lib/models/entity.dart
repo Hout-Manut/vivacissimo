@@ -69,7 +69,8 @@ sealed class Entity {
     return tags.map((tag) => tag.id).toList();
   }
 
-  static Set<Tag> _idsToTags(List<dynamic> ids) {
+  static Set<Tag> _idsToTags(List<dynamic>? ids) {
+    if (ids == null) return {};
     return ids
         .map((id) =>
             Vivacissimo.getTagById(id) ??
@@ -91,19 +92,21 @@ sealed class Entity {
 @JsonSerializable()
 class Artist extends Entity {
   final String name;
-  final String sortName;
+  final String? sortName;
   final ArtistType type;
   final String? description;
+  final List<dynamic> releasesJson;
 
   Artist({
     required super.id,
     required this.name,
-    required this.sortName,
+    this.sortName,
     required super.tags,
     this.type = ArtistType.person,
     this.description,
     super.entityType = EntityType.artist,
-  });
+    List<dynamic>? releasesJson,
+  }) : releasesJson = releasesJson ?? [];
 
   factory Artist.fromJson(Map<String, dynamic> json) => _$ArtistFromJson(json);
 
@@ -113,6 +116,7 @@ class Artist extends Entity {
       name: json['name']!,
       sortName: json['sort-name']!,
       tags: {},
+      releasesJson: json['releases'] ?? [],
     );
   }
 

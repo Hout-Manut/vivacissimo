@@ -86,21 +86,17 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
         await MusicbrainzApi.searchReleases(controller.text);
     result.clear();
     result.addAll(foundReleases);
-    onLoaded();
+    if (!mounted) return;
+
+    setState(() {
+      state = SearchState.loaded;
+    });
   }
 
   @override
   void dispose() {
     controller.dispose();
     super.dispose();
-  }
-
-  void onLoaded() {
-    final ImageCache cache = PaintingBinding.instance.imageCache;
-    cache.clear();
-    setState(() {
-      state = SearchState.loaded;
-    });
   }
 
   void onTap(Entity target) {
@@ -246,7 +242,7 @@ class _EntityResultState extends State<EntityResult> {
     if (imageUrl != null) {
       return Image.network(
         imageUrl!,
-        key: Key(widget.entity.id),
+        key: Key(imageUrl!),
         headers: MusicbrainzApi.headers,
         fit: BoxFit.cover,
         errorBuilder: (context, obj, stackTrace) {
@@ -288,11 +284,10 @@ class _EntityResultState extends State<EntityResult> {
     );
   }
 
-  bool isLoading = true;
-
   Future<void> fetchImage() async {
     final String? imagePath =
         await MusicbrainzApi.getImageUrl(widget.entity.id);
+    if (!mounted) return;
     setState(() {
       imageUrl = imagePath;
     });

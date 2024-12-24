@@ -30,6 +30,26 @@ class MusicbrainzApi {
     return null;
   }
 
+  static Future<Artist?> searchArtistById(String mbid) async {
+    return Cache.cacheAsync("seachArtistById_$mbid", () async {
+      final uri =
+          Uri.parse("$_endpoint/artist/$mbid?inc=releases&fmt=$_format");
+      printDebug(uri);
+      final http.Response response = await http.get(uri, headers: headers);
+      printDebug("Response :${response.statusCode}");
+
+      if (response.statusCode != 200) return null;
+      final Map<String, dynamic> data =
+          json.decode(utf8.decode(response.bodyBytes));
+
+      String type = data["type"] as String;
+      data["type"] = type.toLowerCase();
+
+      Artist artist = Artist.fromJson(data);
+      return artist;
+    });
+  }
+
   static Future<List<Release>> searchReleases(
     String query, {
     int limit = 5,

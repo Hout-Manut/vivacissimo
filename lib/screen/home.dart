@@ -40,57 +40,59 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 64.0,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 64.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const LargeTitleText('Home'),
+                  const SizedBox(height: 16),
+                  const TitleText('Recent Playlists'),
+                  const SizedBox(height: 8),
+                  RecentPlaylists(onTap: onTap),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                      onPressed: () {
+                        Vivacissimo.saveData();
+                      },
+                      child: Text("DEBUG: Save data")),
+                  ElevatedButton(
+                      onPressed: () {
+                        Vivacissimo.deleteData();
+                      },
+                      child: Text("DEBUG: Clear data")),
+                ],
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const LargeTitleText('Home'),
-                const SizedBox(height: 16),
-                const TitleText('Recent Playlists'),
-                const SizedBox(height: 8),
-                RecentPlaylists(onTap: onTap),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                    onPressed: () {
-                      Vivacissimo.saveData();
-                    },
-                    child: Text("DEBUG: Save data")),
-                ElevatedButton(
-                    onPressed: () {
-                      Vivacissimo.deleteData();
-                    },
-                    child: Text("DEBUG: Clear data")),
-              ],
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Material(
-                color: AppColor.primaryColor,
-                borderRadius: BorderRadius.circular(8),
-                child: InkWell(
-                  onTap: newPlaylist,
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom:16),
+                child: Material(
+                  color: AppColor.primaryColor,
                   borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 48, vertical: 16.0),
-                    child: SizedBox(
-                      child: Icon(Icons.add),
+                  child: InkWell(
+                    onTap: newPlaylist,
+                    borderRadius: BorderRadius.circular(8),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 48, vertical: 16.0),
+                      child: SizedBox(
+                        child: Icon(Icons.add),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
