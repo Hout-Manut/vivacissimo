@@ -337,8 +337,3 @@ class Vivacissimo {
     return entity;
   }
 }
-
-String getPrettyJSONString(jsonObject) {
-  const JsonEncoder encoder = JsonEncoder.withIndent("  ");
-  return encoder.convert(jsonObject);
-}

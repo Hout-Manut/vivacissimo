@@ -232,7 +232,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
           child: const SizedBox(
             width: 98,
             child: Center(
-              child: Icon(Icons.add),
+              child: Icon(Icons.add, color: AppColor.textSecondaryColor),
             ),
           ),
         ),

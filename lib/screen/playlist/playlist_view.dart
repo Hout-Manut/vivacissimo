@@ -8,6 +8,11 @@ import 'package:vivacissimo/services/vivacissimo.dart';
 import 'package:vivacissimo/widgets/commons.dart';
 import 'package:vivacissimo/widgets/constants.dart';
 
+enum OptionChoice {
+  duplicate,
+  delete;
+}
+
 class PlaylistView extends StatefulWidget {
   final Playlist playlist;
   const PlaylistView(
@@ -86,19 +91,113 @@ class _PlaylistViewState extends State<PlaylistView> {
   }
 
   void moreOptions() async {
-    String? option = await showModalBottomSheet(
-        context: context,
-        builder: (context) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: AppColor.backgroundColor,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(4),
-                topRight: Radius.circular(4),
-              ),
+    OptionChoice? option = await showModalBottomSheet<OptionChoice>(
+      isScrollControlled: true,
+      context: context,
+      builder: (context) {
+        return Container(
+          width: double.infinity, // Ensures it covers the width
+          height: 164,
+          padding: const EdgeInsets.only(bottom: 24),
+          decoration: const BoxDecoration(
+            color: AppColor.backgroundColor,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(8),
             ),
-          );
-        });
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: Container(
+                  height: 4,
+                  width: 42,
+                  decoration: BoxDecoration(
+                    color: AppColor.buttonSelectedColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 48,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).pop(OptionChoice.duplicate);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Duplicate",
+                            style: TextStyle(
+                              color: AppColor.textColor,
+                              fontSize: AppFontSize.body,
+                            ),
+                          ),
+                          Icon(
+                            Icons.file_copy,
+                            color: AppColor.textColor,
+                            size: AppFontSize.body,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 48,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).pop(OptionChoice.delete);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Delete",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: AppFontSize.body,
+                            ),
+                          ),
+                          Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                            size: AppFontSize.body,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    switch (option) {
+      case null:
+        return;
+      case OptionChoice.duplicate:
+        // TODO: Not Implemented;
+        return;
+      case OptionChoice.delete:
+        Vivacissimo.playlists.remove(widget.playlist);
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+    }
   }
 
   bool _isLoading = false;
@@ -292,7 +391,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () {},
+                            onPressed: moreOptions,
                             icon: const Icon(
                               Icons.more_horiz_rounded,
                               size: 16,
@@ -372,7 +471,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                 ),
                                 const SizedBox(height: 16),
                                 SizedBox(
-                                  height: 36,
+                                  height: 42,
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -390,6 +489,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius: BorderRadius.circular(
                                                   8), // Matches the Container's borderRadius
                                               child: Container(
+                                                constraints: const BoxConstraints(minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -398,7 +498,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                                   child: Icon(
                                                     Icons.edit,
                                                     color: AppColor.textColor,
-                                                    size: 12,
+                                                    size: 14,
                                                   ),
                                                 ),
                                               ),
@@ -414,6 +514,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius: BorderRadius.circular(
                                                   8), // Matches the Container's borderRadius
                                               child: Container(
+                                                constraints: const BoxConstraints(minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -434,7 +535,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                                           Icons.replay,
                                                           color: AppColor
                                                               .textColor,
-                                                          size: 12,
+                                                          size: 14,
                                                         ),
                                                 ),
                                               ),
@@ -457,6 +558,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                               child: Container(
+                                                constraints: const BoxConstraints(minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -465,7 +567,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                                   child: Icon(
                                                     Icons.open_in_new,
                                                     color: AppColor.textColor,
-                                                    size: 12,
+                                                    size: 14,
                                                   ),
                                                 ),
                                               ),
@@ -483,6 +585,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                               child: Container(
+                                                constraints: const BoxConstraints(minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -493,6 +596,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                                     style: TextStyle(
                                                       color: Colors.black,
                                                       fontSize: 12,
+                                                      fontWeight: FontWeight.w500
                                                     ),
                                                   ),
                                                 ),
@@ -568,7 +672,7 @@ class PlaylistItems extends StatelessWidget {
               index: index,
               child: Container(
                 width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal:  8, vertical: 12),
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

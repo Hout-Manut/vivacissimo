@@ -20,14 +20,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
-  void onTap(Playlist playlist) {
-    Navigator.of(context).push(
+  void onTap(Playlist playlist) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
           return PlaylistView(playlist);
         },
       ),
     );
+    setState(() {});
   }
 
   void newPlaylist() async {
@@ -73,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom:16),
+                padding: const EdgeInsets.only(bottom: 16),
                 child: Material(
                   color: AppColor.primaryColor,
                   borderRadius: BorderRadius.circular(8),

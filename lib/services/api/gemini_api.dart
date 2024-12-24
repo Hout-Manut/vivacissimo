@@ -14,10 +14,6 @@ class GeminiApi {
     _apiKey = dotenv.env["GEMINI_TOKEN"] ?? "";
   }
 
-  // Future<GenerateContentResponse> ask(List<Content> content) async {
-  //   return await _model.generateContent(content);
-  // }
-
   Future<List<Release>> getReleases(String prompt) async {
     final GenerativeModel model = GenerativeModel(
       model: 'gemini-1.5-flash-latest',
@@ -26,8 +22,6 @@ class GeminiApi {
           responseMimeType: 'application/json',
           responseSchema: ApiResponse.releaseListSchema),
     );
-
-    printDebug(prompt);
 
     final GenerateContentResponse response = await model.generateContent(
       [Content.text(prompt)],
@@ -97,9 +91,4 @@ class GeminiApi {
 
     return entity;
   }
-}
-
-String getPrettyJSONString(jsonObject) {
-  var encoder = const JsonEncoder.withIndent("  ");
-  return encoder.convert(jsonObject);
 }
