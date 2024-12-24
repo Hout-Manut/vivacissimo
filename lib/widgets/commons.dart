@@ -115,17 +115,20 @@ class AppButton extends StatelessWidget {
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
+  final void Function(String)? onSubmitted;
   final String hintText;
 
   const AppTextField({
     super.key,
     required this.controller,
     required this.hintText,
+    this.onSubmitted,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onSubmitted: onSubmitted,
       controller: controller,
       style: const TextStyle(color: AppColor.textColor),
       decoration: InputDecoration(
@@ -186,33 +189,36 @@ class AssetOrFileImage extends StatelessWidget {
       borderRadius: BorderRadius.circular(borderRadius),
       color: Colors.grey.shade200,
     );
-    return FutureBuilder<Widget>(
-      future: _loadImage(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            width: width,
-            height: height,
-            decoration: decoration,
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        } else if (snapshot.hasError) {
-          return Container(
-            width: width,
-            height: height,
-            decoration: decoration,
-            child: const Center(child: Icon(Icons.error)),
-          );
-        } else if (snapshot.hasData) {
-          return snapshot.data!;
-        } else {
-          return Container(
-            width: width,
-            height: height,
-            decoration: decoration,
-          );
-        }
-      },
+    return AspectRatio(
+      aspectRatio: 1.0,
+      child: FutureBuilder<Widget>(
+        future: _loadImage(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              width: width,
+              height: height,
+              decoration: decoration,
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          } else if (snapshot.hasError) {
+            return Container(
+              width: width,
+              height: height,
+              decoration: decoration,
+              child: const Center(child: Icon(Icons.error)),
+            );
+          } else if (snapshot.hasData) {
+            return snapshot.data!;
+          } else {
+            return Container(
+              width: width,
+              height: height,
+              decoration: decoration,
+            );
+          }
+        },
+      ),
     );
   }
 }

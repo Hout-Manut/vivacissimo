@@ -32,10 +32,21 @@ class Vivacissimo {
   static bool loaded = false;
   static Future<void>? _loadingFuture;
 
+  static final Set<Playlist> processingList = {};
+
   static const JsonEncoder encoder = JsonEncoder.withIndent("  ");
 
   static void addPlaylist(Playlist newPlaylist) {
+    for (Playlist p in _savedPlaylists) {
+      print(p.preferences);
+    }
+    print(newPlaylist.preferences);
+
+    _savedPlaylists.remove(newPlaylist);
     _savedPlaylists.add(newPlaylist);
+    for (Playlist p in _savedPlaylists) {
+      print(p.preferences);
+    }
     _savedReleases.addAll(newPlaylist.releases);
     for (Release release in newPlaylist.releases) {
       _savedTags.addAll(release.tags);
@@ -301,7 +312,26 @@ class Vivacissimo {
     }
   }
 
+  static Future<Playlist> ensurePlaylistLoaded(Playlist playlist) async {
+    if (!processingList.contains(playlist)) {
+      return playlist;
+    }
+    while (processingList.contains(playlist)) {
+      await Future.delayed(
+        const Duration(milliseconds: 100),
+      );
+    }
+
+    return playlist;
+  }
+
   static Future<Playlist> getNewSongsForPlaylist(Playlist playlist) async {
+    if (processingList.contains(playlist)) {
+      return playlist;
+    }
+
+    processingList.add(playlist);
+
     GeminiApi api = GeminiApi();
     String prompt = playlist.toPrompt();
     List<Release> releases = await api.getReleases(prompt);
@@ -309,8 +339,8 @@ class Vivacissimo {
     playlist.releases.clear();
     playlist.releases.addAll(releases);
 
+    processingList.remove(playlist);
     addPlaylist(playlist);
-
     return playlist;
   }
 
@@ -325,7 +355,7 @@ class Vivacissimo {
           _savedArtists.add(entity);
         }
       case Release():
-          newArtistsFromCredit(entity.credit);
+        newArtistsFromCredit(entity.credit);
         if (!_savedReleases.contains(entity)) {
           _savedReleases.add(entity);
         }

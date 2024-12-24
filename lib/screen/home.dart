@@ -147,11 +147,21 @@ class PlaylistWidget extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          AssetOrFileImage(
-            imageName: playlist.imageUrl,
-            isAsset: playlist.imageIsAsset,
-            width: itemHeight,
-            height: itemHeight,
+          Hero(
+            placeholderBuilder: (context, size, child) {
+              return Container(
+                width: size.width,
+                height: size.height,
+                color: Colors.transparent,
+              );
+            },
+            tag: playlist.imageUrl,
+            child: AssetOrFileImage(
+              imageName: playlist.imageUrl,
+              isAsset: playlist.imageIsAsset,
+              width: itemHeight,
+              height: itemHeight,
+            ),
           ),
           Material(
             color: Colors.transparent,

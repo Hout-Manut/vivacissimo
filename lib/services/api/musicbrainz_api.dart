@@ -31,7 +31,7 @@ class MusicbrainzApi {
   }
 
   static Future<Artist?> searchArtistById(String mbid) async {
-    return Cache.cacheAsync("seachArtistById_$mbid", () async {
+    return Cache.cacheAsync("searchArtistById_$mbid", () async {
       final uri =
           Uri.parse("$_endpoint/artist/$mbid?inc=releases&fmt=$_format");
       printDebug(uri);
@@ -77,15 +77,18 @@ class MusicbrainzApi {
       combinations.add("artist:${queryParts[0]}");
     }
 
-    final List<Future<http.Response>> requests =
-        combinations.map((combination) {
-      final Uri uri = Uri.parse(
-          '$_endpoint/release/?query=$combination&fmt=$_format&limit=$limit&offset=$offset');
-      return http.get(uri, headers: headers);
-    }).toList();
+    final List<Future<http.Response>> requests = [];
 
+    for (String combination in combinations) {
+      try {
+        final Uri uri = Uri.parse(
+            '$_endpoint/release/?query=$combination&fmt=$_format&limit=$limit&offset=$offset');
+        requests.add(http.get(uri, headers: headers));
+      } catch (e) {
+        printDebug("Error: $e");
+      }
+    }
     final List<http.Response> responses = await Future.wait(requests);
-
     List<Release> releases = [];
     Set<String> addedIds = {};
     for (final http.Response response in responses) {
@@ -100,12 +103,37 @@ class MusicbrainzApi {
         addedIds.add(release['id']);
       }
     }
+    releases.sort((a, b) {
+      int scoreA = _calculateMatchScore(a, queryParts);
+      int scoreB = _calculateMatchScore(b, queryParts);
+      return scoreB.compareTo(scoreA); // Descending order
+    });
+
     return releases;
+  }
+
+  static int _calculateMatchScore(Release release, List<String> queryParts) {
+    final List<String> titleParts = release.title.toLowerCase().split(' ');
+    final List<String> creditParts =
+        release.credit.toString().toLowerCase().split(' ');
+
+    int score = 0;
+
+    for (String queryPart in queryParts) {
+      if (titleParts.contains(queryPart.toLowerCase())) {
+        score++;
+      }
+      if (creditParts.contains(queryPart.toLowerCase())) {
+        score++;
+      }
+    }
+
+    return score;
   }
 
   static Future<String?> getImageUrl(
     String mbid, {
-    String dimension = '1200',
+    String dimension = '500',
   }) async {
     return await Cache.cacheAsync<String, String?>(
       'getImageUrl_imageUrl_$mbid',

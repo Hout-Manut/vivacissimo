@@ -250,7 +250,7 @@ class Playlist {
       ..writeln(
           notPreferredTags.isNotEmpty ? notPreferredTags : "No tags to avoid.")
       ..writeln(
-          "Please provide music recommendations that match the above criteria.");
+          "Please provide music recommendations that match the above criteria. If there are no informations given, just give me random recently popular english songs.");
     return sb.toString().trim();
   }
 }

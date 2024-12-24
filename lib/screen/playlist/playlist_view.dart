@@ -31,6 +31,8 @@ class _PlaylistViewState extends State<PlaylistView> {
   AssetOrFileImage? _coverImageCache;
   bool coverImageChanged = false;
 
+  bool _isLoading = false;
+
   Widget? get coverImage {
     if (_coverImageCache == null) {
       return null;
@@ -48,12 +50,24 @@ class _PlaylistViewState extends State<PlaylistView> {
     coverImageChanged = false;
   }
 
+  Future<void> checkPlaylistLoaded() async {
+    if (Vivacissimo.processingList.contains(widget.playlist)) {
+      _isLoading = true;
+      setState(() {});
+      await Vivacissimo.ensurePlaylistLoaded(widget.playlist);
+      _isLoading = false;
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     if (!widget.playlist.imageIsAsset) {
       loadImagePath();
     }
     refreshCoverImage();
+
+    checkPlaylistLoaded();
 
     super.initState();
     _scrollController.addListener(_onScroll);
@@ -199,8 +213,6 @@ class _PlaylistViewState extends State<PlaylistView> {
         }
     }
   }
-
-  bool _isLoading = false;
 
   void onRefresh() async {
     if (_isLoading) return;
@@ -446,7 +458,22 @@ class _PlaylistViewState extends State<PlaylistView> {
                                   ),
                                 ],
                               ),
-                              child: coverImage,
+                              child: Hero(
+                                placeholderBuilder: (context, size, child) {
+                                  return Container(
+                                    width: size.width,
+                                    height: size.height,
+                                    color: Colors
+                                        .transparent,
+                                  );
+                                },
+                                tag: widget.playlist.imageUrl,
+                                child: coverImage ??
+                                    const SizedBox(
+                                      width: 240,
+                                      height: 240,
+                                    ),
+                              ),
                             ),
                             const SizedBox(height: 40),
                             Column(
@@ -489,7 +516,9 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius: BorderRadius.circular(
                                                   8), // Matches the Container's borderRadius
                                               child: Container(
-                                                constraints: const BoxConstraints(minWidth: 42),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -514,7 +543,9 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius: BorderRadius.circular(
                                                   8), // Matches the Container's borderRadius
                                               child: Container(
-                                                constraints: const BoxConstraints(minWidth: 42),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -558,7 +589,9 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                               child: Container(
-                                                constraints: const BoxConstraints(minWidth: 42),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -585,7 +618,9 @@ class _PlaylistViewState extends State<PlaylistView> {
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                               child: Container(
-                                                constraints: const BoxConstraints(minWidth: 42),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 42),
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
@@ -594,10 +629,10 @@ class _PlaylistViewState extends State<PlaylistView> {
                                                   child: Text(
                                                     "Open in Spotify",
                                                     style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.w500
-                                                    ),
+                                                        color: Colors.black,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500),
                                                   ),
                                                 ),
                                               ),

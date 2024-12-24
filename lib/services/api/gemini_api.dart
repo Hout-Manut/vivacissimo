@@ -23,6 +23,8 @@ class GeminiApi {
           responseSchema: ApiResponse.releaseListSchema),
     );
 
+    printDebug(prompt);
+
     final GenerateContentResponse response = await model.generateContent(
       [Content.text(prompt)],
     );
@@ -32,6 +34,7 @@ class GeminiApi {
 
     final pool = Pool(5);
 
+    printDebug(results);
     final List<Future<Release?>> futures = results
         .map((rawResult) => pool.withResource(() async {
               final Map<String, dynamic> result =
@@ -60,6 +63,8 @@ class GeminiApi {
     temp.removeWhere((r) => r == null);
     releases = temp.cast<Release>();
 
+
+    printDebug(releases.length);
     return releases;
   }
 

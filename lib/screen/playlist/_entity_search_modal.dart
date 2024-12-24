@@ -5,6 +5,13 @@ import 'package:vivacissimo/widgets/commons.dart';
 import 'package:vivacissimo/widgets/constants.dart';
 import 'dart:async';
 
+class EntitySearchModal extends StatefulWidget {
+  const EntitySearchModal({super.key});
+
+  @override
+  State<EntitySearchModal> createState() => _EntitySearchModalState();
+}
+
 const double baseHeight = 78;
 
 enum SearchState {
@@ -32,34 +39,30 @@ enum SearchState {
   final Widget? widget;
 }
 
-class EntitySearchModal extends StatefulWidget {
-  const EntitySearchModal({super.key});
-
-  @override
-  State<EntitySearchModal> createState() => _EntitySearchModalState();
-}
-
 class _EntitySearchModalState extends State<EntitySearchModal> {
+  final TextEditingController controller = TextEditingController();
+  SearchState state = SearchState.idle;
+  final List<Entity> result = [];
+  bool temp = true;
+  Timer? debounce;
+
   static const double height = baseHeight;
   static const double idleHeight = 52;
   static const double padding = 8;
-  SearchState state = SearchState.idle;
-  final List<Entity> results = [];
-  Timer? debounce;
-  final TextEditingController controller = TextEditingController();
+
   bool get expanded {
-    if (state != SearchState.loaded) return results.isNotEmpty;
+    if (state != SearchState.loaded) return result.isNotEmpty;
     return true;
   }
 
   double get expandedHeight {
-    if (results.isEmpty) {
+    if (result.isEmpty) {
       if (state == SearchState.loaded) {
         return idleHeight + 64;
       }
       return idleHeight;
     }
-    double finalHeight = (height * results.length) + (idleHeight * 2);
+    double finalHeight = (height * result.length) + (idleHeight * 2);
     return finalHeight > 360 ? 360 : finalHeight;
   }
 
@@ -81,8 +84,8 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
     if (state != SearchState.loading) return;
     List<Release> foundReleases =
         await MusicbrainzApi.searchReleases(controller.text);
-    results.clear();
-    results.addAll(foundReleases);
+    result.clear();
+    result.addAll(foundReleases);
     if (!mounted) return;
 
     setState(() {
@@ -100,28 +103,19 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
     Navigator.of(context).pop(target);
   }
 
-  List<EntityResult> get _actuallyBuildResult {
-    List<EntityResult> items = [];
-
-    for (Entity result in results) {
-      items.add(EntityResult(
-        result,
-        onTap: () => onTap(result),
-      ));
-    }
-    return items;
-  }
-
-  Widget buildResult() {
-    if (results.isNotEmpty) {
+  Widget buildResults() {
+    if (result.isNotEmpty) {
       return Align(
         alignment: Alignment.topCenter,
         child: Padding(
           padding: const EdgeInsets.only(top: idleHeight + padding),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: _actuallyBuildResult,
+          child: ListView.builder(
+            key: ValueKey(result.hashCode),
+            itemCount: result.length,
+            // cacheExtent: 1000,
+            itemBuilder: (context, index) => EntityResult(
+              result[index],
+              onTap: () => onTap(result[index]),
             ),
           ),
         ),
@@ -206,7 +200,7 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
                                 child: state.widget ?? const SizedBox.shrink(),
                               ),
                             ),
-                            hintText: 'Search songs',
+                            hintText: 'Search songs or artists',
                             hintStyle: const TextStyle(
                               color: AppColor.textSecondaryColor,
                             ),
@@ -217,7 +211,7 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
                           ),
                         ),
                       ),
-                      buildResult(),
+                      buildResults(),
                     ],
                   ),
                 ),
@@ -230,132 +224,131 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
   }
 }
 
-class EntityResult extends StatelessWidget {
+class EntityResult extends StatefulWidget {
   final Entity entity;
   final void Function() onTap;
   const EntityResult(this.entity, {super.key, required this.onTap});
 
-  Future<String?> getImageUrl(Entity entity) async {
-    return await MusicbrainzApi.getImageUrl(entity.id);
-  }
+  static const double height = baseHeight;
 
-  Widget buildImage() {
-    return FutureBuilder(
-      future: getImageUrl(entity),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                color: AppColor.primaryColor,
-              ),
-            ),
-          );
-        }
-        if (snapshot.data == null || snapshot.hasError) {
+  @override
+  State<EntityResult> createState() => _EntityResultState();
+}
+
+class _EntityResultState extends State<EntityResult> {
+  String? imageUrl;
+
+  Widget getImage() {
+    if (imageUrl != null) {
+      return Image.network(
+        imageUrl!,
+        key: Key(imageUrl!),
+        headers: MusicbrainzApi.headers,
+        fit: BoxFit.cover,
+        errorBuilder: (context, obj, stackTrace) {
           return Image.asset(
             'assets/playlist-placeholder-small.jpg',
             fit: BoxFit.cover,
           );
-        }
-        return Image.network(
-          snapshot.data as String,
-          headers: MusicbrainzApi.headers,
-          fit: BoxFit.cover,
-          errorBuilder: (context, obj, stackTrace) {
-            return Image.asset(
-              'assets/playlist-placeholder-small.jpg',
-              fit: BoxFit.cover,
-            );
-          },
-          loadingBuilder: (context, widget, progress) {
-            if (progress == null) return widget;
-            int? total = progress.expectedTotalBytes;
-            double? percentage;
-            if (total != null) {
-              percentage = progress.cumulativeBytesLoaded / total;
-            } else {
-              percentage = null;
-            }
-            return Center(
-              child: SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(
-                  value: percentage,
-                  color: AppColor.primaryColor,
-                ),
+        },
+        loadingBuilder: (context, widget, progress) {
+          if (progress == null) return widget;
+          int? total = progress.expectedTotalBytes;
+          double? percentage;
+          if (total != null) {
+            percentage = progress.cumulativeBytesLoaded / total;
+          } else {
+            percentage = null;
+          }
+          return Center(
+            child: SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                value: percentage,
+                color: AppColor.primaryColor,
               ),
-            );
-          },
-        );
-      },
+            ),
+          );
+        },
+      );
+    }
+    return const Center(
+      child: SizedBox(
+        width: 32,
+        height: 32,
+        child: CircularProgressIndicator(
+          color: AppColor.primaryColor,
+        ),
+      ),
     );
   }
 
-  List<Widget> buildInfo() {
-    switch (entity) {
-      case Artist():
-        Artist artist = entity as Artist;
-        return [
-          BodyText(artist.name),
-          SubText(artist.type.name.toUpperCase()),
-        ];
-      case Release():
-        Release release = entity as Release;
-        return [
-          BodyText(release.title),
-          SubText(release.credit.toString()),
-        ];
-    }
+  Future<void> fetchImage() async {
+    final String? imagePath =
+        await MusicbrainzApi.getImageUrl(widget.entity.id);
+    if (!mounted) return;
+    setState(() {
+      imageUrl = imagePath;
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+  void initState() {
+    fetchImage();
+    super.initState();
+  }
+
+  Widget buildRelease(
+    BuildContext context,
+    Release release,
+  ) {
+    return GestureDetector(
+      onTap: widget.onTap,
       child: Container(
-        height: baseHeight,
-        color: Colors.transparent,
-        child: Stack(
+        margin: const EdgeInsets.only(bottom: 8),
+        height: EntityResult.height,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  height: baseHeight,
-                  width: baseHeight,
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(4)),
-                  child: Container(
-                    decoration:
-                        BoxDecoration(borderRadius: BorderRadius.circular(4)),
-                    clipBehavior: Clip.antiAlias,
-                    child: buildImage(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: buildInfo(),
-                  ),
-                ),
-              ],
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onTap,
+            Container(
+              height: EntityResult.height,
+              width: EntityResult.height,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
+              child: Container(
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(4)),
+                clipBehavior: Clip.antiAlias,
+                child: getImage(),
               ),
-            )
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BodyText(release.title),
+                  SubText(release.credit.toString()),
+                  SubText(release.id),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    switch (widget.entity) {
+      case Artist():
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case Release():
+        return buildRelease(context, widget.entity as Release);
+    }
   }
 }

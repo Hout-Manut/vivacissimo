@@ -27,7 +27,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
   final Map<Tag, bool> selectedTags = {};
   Entity? target;
   String? imageName;
-  bool imageIsAsset = false;
+  bool imageIsAsset = true;
   File? loadedImage;
 
   late final bool isCreating;
@@ -35,7 +35,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
   DateTime? createdDate;
   bool submitted = false;
 
-  int length = 20;
+  int length = 30;
   bool allowExplicit = true;
   bool? discovery;
   bool? popularity;
@@ -59,16 +59,22 @@ class _PlaylistNewState extends State<PlaylistNew> {
     return value;
   }
 
+  TextEditingController tagController = TextEditingController();
+
   void onSubmit() {
+    submitted = true;
     List<Tag> prefer = [];
     List<Tag> notPrefer = [];
     selectedTags.forEach((key, value) {
-    if (value) {
-      prefer.add(key);
-    } else {
-      notPrefer.add(key);
-    }
-  });
+      if (value) {
+        prefer.add(key);
+      } else {
+        notPrefer.add(key);
+      }
+    });
+
+    printDebug(prefer);
+    printDebug(notPrefer);
 
     Playlist newPlaylist = Playlist(
       id: id,
@@ -83,10 +89,11 @@ class _PlaylistNewState extends State<PlaylistNew> {
         "less": notPrefer,
       },
       references: references,
-      dateCreated: createdDate
+      dateCreated: createdDate,
+      imageIsAsset: imageIsAsset,
     );
     Vivacissimo.addPlaylist(newPlaylist);
-    submitted = true;
+    Vivacissimo.getNewSongsForPlaylist(newPlaylist);
     Navigator.pop(context);
   }
 
@@ -94,6 +101,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
   void initState() {
     if (widget.editItem != null) {
       isCreating = false;
+      submitted = true;
       Playlist oldItem = widget.editItem!;
 
       id = oldItem.id;
@@ -132,6 +140,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
       Vivacissimo.deleteImage(imageName!);
     }
     nameController.dispose();
+    tagController.dispose();
     super.dispose();
   }
 
@@ -238,7 +247,21 @@ class _PlaylistNewState extends State<PlaylistNew> {
         ),
       );
     }
-    return AssetOrFileImage(imageName: imageName!, isAsset: imageIsAsset);
+    return Stack(
+      children: [
+        AssetOrFileImage(imageName: imageName!, isAsset: imageIsAsset),
+        SizedBox(
+          height: 98,
+          width: 98,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: addImage,
+            ),
+          ),
+        )
+      ],
+    );
   }
 
   void onTagTap(Tag target) {
@@ -252,6 +275,23 @@ class _PlaylistNewState extends State<PlaylistNew> {
       selectedTags[target] = true;
     }
 
+    setState(() {});
+  }
+
+  void newTag() {
+    String tagName = tagController.text;
+    if (tagName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Invalid Tag name"),
+          backgroundColor: AppColor.buttonColor,
+        ),
+      );
+      return;
+    }
+    Tag newTag = Tag(name: tagName, value: tagName, type: TagType.other);
+    selectedTags[newTag] = true;
+    tagController.text = "";
     setState(() {});
   }
 
@@ -309,23 +349,67 @@ class _PlaylistNewState extends State<PlaylistNew> {
         ),
     ];
 
-    // Check if the tagGrids list is empty
-    if (tagGrids.isEmpty) {
-      return const SizedBox(
-        height: 128,
-        child: Text(
-          "No tags found or selected, try using a reference item to see tags.",
-          style: TextStyle(
-            color: AppColor.textSecondaryColor,
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: AppColor.buttonColor.withAlpha(64),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            tags.isEmpty
+                ? const SizedBox(
+                    height: 98,
+                    child: Text(
+                      "No tags found or selected, try using a reference item to see tags.",
+                      style: TextStyle(
+                        color: AppColor.textSecondaryColor,
+                      ),
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: tagGrids,
+                  ),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: AppTextField(
+                    onSubmitted: (string) {
+                      newTag();
+                    },
+                    controller: tagController,
+                    hintText: "Enter tag name",
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                  child: InkWell(
+                    onTap: newTag,
+                    borderRadius: BorderRadius.circular(4),
+                    child: const SizedBox(
+                      width: 48,
+                      height: 32,
+                      child: Center(
+                        child: Icon(
+                          Icons.add,
+                          color: AppColor.textColor,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ],
         ),
-      );
-    }
-
-    // Return a column with the non-empty tag grids
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: tagGrids,
+      ),
     );
   }
 
@@ -378,6 +462,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
                   const SizedBox(height: 8),
                   ReferenceList(
                       references: references,
+                      target: target,
                       onEntityTap: (entity) => setState(() {
                             if (entity == target) {
                               target = null;
@@ -394,7 +479,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
                   const TitleText('Advanced Configure'),
                   const SizedBox(height: 8),
                   buildTags(),
-                  const SizedBox(height: 64),
+                  const SizedBox(height: 32),
                   const TitleText('Playlist Options', key: Key("options")),
                   const SizedBox(height: 8),
                   Column(
@@ -580,6 +665,7 @@ class ReferenceList extends StatelessWidget {
   final void Function(Entity) onEntityTap;
   final void Function(Entity) onEntityHold;
   final void Function() onAdd;
+  final Entity? target;
 
   static const double itemHeight = 98;
 
@@ -589,10 +675,20 @@ class ReferenceList extends StatelessWidget {
     required this.onEntityTap,
     required this.onAdd,
     required this.onEntityHold,
+    required this.target,
   });
 
   Future<String?> getImageUrl(Entity entity) async {
     return await MusicbrainzApi.getImageUrl(entity.id);
+  }
+
+  double getOpacity(Entity entity) {
+    if (target == null) {
+      return 1;
+    } else if (target == entity) {
+      return 1;
+    }
+    return 0.5;
   }
 
   List<Widget> buildList() {
@@ -614,68 +710,70 @@ class ReferenceList extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  FutureBuilder(
-                    initialData: const Center(
-                      child: SizedBox(
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    opacity: getOpacity(entity),
+                    child: FutureBuilder(
+                      initialData: const SizedBox(
                         width: 32,
                         height: 32,
-                        child: CircularProgressIndicator(
-                          color: AppColor.primaryColor,
-                        ),
                       ),
-                    ),
-                    future: getImageUrl(entity),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: CircularProgressIndicator(
-                              color: AppColor.primaryColor,
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (snapshot.data == null || snapshot.hasError) {
-                        return Image.asset(
-                          'assets/playlist-placeholder-small.jpg',
-                          fit: BoxFit.cover,
-                        );
-                      }
-                      return Image.network(
-                        snapshot.data as String,
-                        headers: MusicbrainzApi.headers,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, obj, stackTrace) {
-                          return Image.asset(
-                            'assets/playlist-placeholder-small.jpg',
-                            fit: BoxFit.cover,
-                          );
-                        },
-                        loadingBuilder: (context, widget, progress) {
-                          if (progress == null) return widget;
-                          int? total = progress.expectedTotalBytes;
-                          double? percentage;
-                          if (total != null) {
-                            percentage = progress.cumulativeBytesLoaded / total;
-                          } else {
-                            percentage = null;
-                          }
-                          return Center(
+                      future: getImageUrl(entity),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
                             child: SizedBox(
                               width: 32,
                               height: 32,
                               child: CircularProgressIndicator(
-                                value: percentage,
                                 color: AppColor.primaryColor,
                               ),
                             ),
                           );
-                        },
-                      );
-                    },
+                        }
+
+                        if (snapshot.data == null || snapshot.hasError) {
+                          return Image.asset(
+                            'assets/playlist-placeholder-small.jpg',
+                            fit: BoxFit.cover,
+                          );
+                        }
+                        return Image.network(
+                          snapshot.data as String,
+                          headers: MusicbrainzApi.headers,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, obj, stackTrace) {
+                            return Image.asset(
+                              'assets/playlist-placeholder-small.jpg',
+                              fit: BoxFit.cover,
+                            );
+                          },
+                          loadingBuilder: (context, widget, progress) {
+                            if (progress == null) return widget;
+                            int? total = progress.expectedTotalBytes;
+                            double? percentage;
+                            if (total != null) {
+                              percentage =
+                                  progress.cumulativeBytesLoaded / total;
+                            } else {
+                              percentage = null;
+                            }
+                            return Center(
+                              child: SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: CircularProgressIndicator(
+                                  value: percentage,
+                                  color: AppColor.primaryColor,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                   Material(
                     color: Colors.transparent,
