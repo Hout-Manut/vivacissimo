@@ -238,19 +238,19 @@ class Playlist {
 
   String toPrompt() {
     final sb = StringBuffer()
-      ..writeln("I want you to make a playlist that $popularityStr.")
+      ..writeln("I want you to make a playlist that $popularityStr")
       ..writeln("This playlist $isExplicitStr.")
       ..writeln("Please include a total of $length songs.")
       ..writeln(preferredSongs.isNotEmpty
           ? "Also, $preferredSongs"
-          : "No specific artist or release references.")
+          : "Give me songs from random artists.")
       ..writeln(preferredTags.isNotEmpty
           ? preferredTags
           : "No specific tags to prioritize.")
       ..writeln(
           notPreferredTags.isNotEmpty ? notPreferredTags : "No tags to avoid.")
       ..writeln(
-          "Please provide music recommendations that match the above criteria. If there are no informations given, just give me random recently popular english songs.");
+          "Please provide music recommendations that closely match the above criteria.");
     return sb.toString().trim();
   }
 }

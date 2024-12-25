@@ -34,7 +34,7 @@ class GeminiApi {
 
     final pool = Pool(5);
 
-    printDebug(results);
+    printDebug(Vivacissimo.encoder.convert(results));
     final List<Future<Release?>> futures = results
         .map((rawResult) => pool.withResource(() async {
               final Map<String, dynamic> result =
@@ -54,7 +54,10 @@ class GeminiApi {
                 return release;
               }
 
-              return null;
+              return Release(
+                title: result["title"]!,
+                credit: ArtistCredit.fake(result["artist"]),
+              );
             }))
         .toList();
     List<Release?> temp = await Future.wait(futures);
@@ -62,7 +65,6 @@ class GeminiApi {
     await pool.close();
     temp.removeWhere((r) => r == null);
     releases = temp.cast<Release>();
-
 
     printDebug(releases.length);
     return releases;
@@ -75,9 +77,8 @@ class GeminiApi {
       model: 'gemini-1.5-flash-latest',
       apiKey: _apiKey,
       generationConfig: GenerationConfig(
-        responseMimeType: 'application/json',
-        responseSchema: ApiResponse.tagsSchema
-      ),
+          responseMimeType: 'application/json',
+          responseSchema: ApiResponse.tagsSchema),
     );
 
     final GenerateContentResponse response = await model.generateContent(

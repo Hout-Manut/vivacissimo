@@ -55,6 +55,7 @@ class _PlaylistViewState extends State<PlaylistView> {
       _isLoading = true;
       setState(() {});
       await Vivacissimo.ensurePlaylistLoaded(widget.playlist);
+      if (!mounted) return;
       _isLoading = false;
       setState(() {});
     }
@@ -228,7 +229,7 @@ class _PlaylistViewState extends State<PlaylistView> {
   void onEdit() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (context) {
-        return PlaylistNew(editItem: widget.playlist);
+        return PlaylistNew(playlistId: widget.playlist.id);
       }),
     );
     setState(() {
@@ -292,6 +293,7 @@ class _PlaylistViewState extends State<PlaylistView> {
           }
           final Release item = widget.playlist.releases.removeAt(oldIndex);
           widget.playlist.releases.insert(newIndex, item);
+          Vivacissimo.saveData();
         });
       },
       onDismissed: (index) {
@@ -459,6 +461,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                 ],
                               ),
                               child: Hero(
+                                tag: widget.playlist.id,
                                 placeholderBuilder: (context, size, child) {
                                   return Container(
                                     width: size.width,
@@ -467,7 +470,6 @@ class _PlaylistViewState extends State<PlaylistView> {
                                         .transparent,
                                   );
                                 },
-                                tag: widget.playlist.imageUrl,
                                 child: coverImage ??
                                     const SizedBox(
                                       width: 240,

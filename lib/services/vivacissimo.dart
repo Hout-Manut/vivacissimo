@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:uuid/uuid.dart';
 import 'package:vivacissimo/services/api/gemini_api.dart';
 import 'package:vivacissimo/services/api/musicbrainz_api.dart';
 import '../models/models.dart';
@@ -13,21 +14,53 @@ void printDebug(Object object) {
 }
 
 class Vivacissimo {
+  static const Uuid uuid = Uuid();
+
   static const String _releaseFilename = "releases.json";
-  static final Set<Release> _savedReleases = {};
-  static Set<Release> get releases => _savedReleases;
+  static final List<Release> _savedReleases = [];
+  static List<Release> get releases => _savedReleases;
+  static void setRelease(Release item) {
+    int index = _savedReleases.indexWhere((item) => item == item);
+
+    if (index == -1) {
+      _savedReleases.add(item);
+    } else {
+      _savedReleases[index] = item;
+    }
+  }
 
   static const String _artistFilename = "artists.json";
-  static final Set<Artist> _savedArtists = {};
-  static Set<Artist> get artists => _savedArtists;
+  static final List<Artist> _savedArtists = [];
+  static List<Artist> get artists => _savedArtists;
+  static void setArtist(Artist item) {
+    int index = _savedArtists.indexWhere((item) => item == item);
+
+    if (index == -1) {
+      _savedArtists.add(item);
+    } else {
+      _savedArtists[index] = item;
+    }
+  }
 
   static const String _playlistFilename = "playlists.json";
-  static final Set<Playlist> _savedPlaylists = {};
-  static Set<Playlist> get playlists => _savedPlaylists;
+  static final List<Playlist> _savedPlaylists = [];
+  static List<Playlist> get playlists => _savedPlaylists;
+  static void setplaylist(Playlist item) {
+    int index = _savedPlaylists.indexWhere((item) => item == item);
+
+    if (index == -1) {
+      _savedPlaylists.add(item);
+    } else {
+      _savedPlaylists[index] = item;
+    }
+  }
 
   static const String _tagFilename = "tags.json";
   static final Set<Tag> _savedTags = {};
   static Set<Tag> get tags => _savedTags;
+  static void setTag(Tag item) {
+    _savedTags.add(item);
+  }
 
   static bool loaded = false;
   static Future<void>? _loadingFuture;
@@ -37,16 +70,7 @@ class Vivacissimo {
   static const JsonEncoder encoder = JsonEncoder.withIndent("  ");
 
   static void addPlaylist(Playlist newPlaylist) {
-    for (Playlist p in _savedPlaylists) {
-      print(p.preferences);
-    }
-    print(newPlaylist.preferences);
-
-    _savedPlaylists.remove(newPlaylist);
-    _savedPlaylists.add(newPlaylist);
-    for (Playlist p in _savedPlaylists) {
-      print(p.preferences);
-    }
+    setplaylist(newPlaylist);
     _savedReleases.addAll(newPlaylist.releases);
     for (Release release in newPlaylist.releases) {
       _savedTags.addAll(release.tags);

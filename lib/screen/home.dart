@@ -4,7 +4,6 @@ import 'package:vivacissimo/screen/playlist/playlist_view.dart';
 import '../models/playlist.dart';
 import '../widgets/commons.dart';
 import '../widgets/constants.dart';
-
 import '../services/vivacissimo.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -148,6 +147,7 @@ class PlaylistWidget extends StatelessWidget {
       child: Stack(
         children: [
           Hero(
+            tag: playlist.id,
             placeholderBuilder: (context, size, child) {
               return Container(
                 width: size.width,
@@ -155,7 +155,6 @@ class PlaylistWidget extends StatelessWidget {
                 color: Colors.transparent,
               );
             },
-            tag: playlist.imageUrl,
             child: AssetOrFileImage(
               imageName: playlist.imageUrl,
               isAsset: playlist.imageIsAsset,

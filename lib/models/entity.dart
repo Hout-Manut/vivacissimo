@@ -37,11 +37,14 @@ sealed class Entity {
   final String id;
   final EntityType entityType;
   @JsonKey(toJson: _tagsToIds, fromJson: _idsToTags, name: "tagIds")
-  final Set<Tag> tags;
+  final Set<Tag> tags = {};
 
   static const Uuid uuid = Uuid();
 
-  Entity({required this.id, required this.entityType, required this.tags});
+  Entity({String? id, required this.entityType, Set<Tag>? tags})
+      : id = id ?? uuid.v4() {
+    this.tags.addAll(tags ?? {});
+  }
 
   factory Entity.fromJson(Map<String, dynamic> json) {
     switch (json['entityType']) {
@@ -98,10 +101,10 @@ class Artist extends Entity {
   final List<dynamic> releasesJson;
 
   Artist({
-    required super.id,
+    super.id,
     required this.name,
     this.sortName,
-    required super.tags,
+    super.tags,
     this.type = ArtistType.person,
     this.description,
     super.entityType = EntityType.artist,
@@ -142,10 +145,10 @@ class Release extends Entity {
   final String image;
 
   Release({
-    required super.id,
+    super.id,
+    super.tags,
     required this.title,
     required this.credit,
-    required super.tags,
     this.image = 'assets/playlist-placeholder-small.jpg',
     super.entityType = EntityType.release,
   });

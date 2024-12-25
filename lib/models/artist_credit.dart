@@ -14,6 +14,17 @@ class ArtistCredit {
     required this.parts,
   });
 
+  ArtistCredit.fake(String artistName)
+      : prefix = "",
+        parts = [
+          ArtistCreditPart(
+            artist: Artist(
+              name: artistName,
+              tags: {},
+            ),
+          ),
+        ];
+
   factory ArtistCredit.fromJson(Map<String, dynamic> json) =>
       _$ArtistCreditFromJson(json);
 
@@ -73,11 +84,10 @@ class ArtistCreditPart {
   static Artist _idToArtist(String id) {
     return Vivacissimo.getArtistById(id) ??
         Artist(
-          id: "unknown-artist",
-          name: "Unknown",
-          sortName: "Unknown",
-          tags: {},
-          releasesJson: []
-        );
+            id: "unknown-artist",
+            name: "Unknown",
+            sortName: "Unknown",
+            tags: {},
+            releasesJson: []);
   }
 }

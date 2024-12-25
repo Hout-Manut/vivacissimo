@@ -15,14 +15,19 @@ import 'package:vivacissimo/models/tag.dart';
 const Uuid uuid = Uuid();
 
 class PlaylistNew extends StatefulWidget {
-  final Playlist? editItem;
-  const PlaylistNew({super.key, this.editItem});
+  final String? playlistId;
+  const PlaylistNew({super.key, this.playlistId});
 
   @override
   State<PlaylistNew> createState() => _PlaylistNewState();
 }
 
 class _PlaylistNewState extends State<PlaylistNew> {
+  Playlist? get editItem {
+    if (widget.playlistId == null) return null;
+    return Vivacissimo.getPlaylistById(widget.playlistId!);
+  }
+
   final List<Entity> references = [];
   final Map<Tag, bool> selectedTags = {};
   Entity? target;
@@ -73,9 +78,6 @@ class _PlaylistNewState extends State<PlaylistNew> {
       }
     });
 
-    printDebug(prefer);
-    printDebug(notPrefer);
-
     Playlist newPlaylist = Playlist(
       id: id,
       title: name,
@@ -94,15 +96,16 @@ class _PlaylistNewState extends State<PlaylistNew> {
     );
     Vivacissimo.addPlaylist(newPlaylist);
     Vivacissimo.getNewSongsForPlaylist(newPlaylist);
+    Vivacissimo.saveData();
     Navigator.pop(context);
   }
 
   @override
   void initState() {
-    if (widget.editItem != null) {
+    Playlist? oldItem = editItem;
+    if (oldItem != null) {
       isCreating = false;
       submitted = true;
-      Playlist oldItem = widget.editItem!;
 
       id = oldItem.id;
 

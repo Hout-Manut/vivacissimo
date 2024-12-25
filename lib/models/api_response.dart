@@ -17,12 +17,12 @@ class ApiResponse {
     properties: {
       "title": Schema.string(
         description:
-            "The title of the release. This will also be used to query MusicBrainz api for additional informations.",
+            "The title of the release.",
         nullable: false,
       ),
       "artist": Schema.string(
         description:
-            'The combined credited artist name for the release, including join phrases (e.g. "Artist X feat.", "x join phrase y") AKA whats displayed',
+            'The combined credited artist name for the release.',
         nullable: false,
       ),
       "tags": tagsSchema,
@@ -32,7 +32,8 @@ class ApiResponse {
 
   static final Schema tagsSchema = Schema.array(
     description:
-        """An array of tags related to the entity. Try to find 20 or more. Each tags should be 1 to 2 words in length, except genre and subgenre use normal genre names for those.
+        """An array of tags related to the entity. Try to find 20 or more.
+          Each tags should be 1 to 2 words in length, except genre and subgenre use normal genre names for those.
 
           Tags includes but not limited to:
 
@@ -52,19 +53,8 @@ class ApiResponse {
           Vibe: 1 word to describe the song's vibe, can be multiple tags
           Instruments: Instruments or electronic
           Vocals: Vocal Samples
-          Tempo: (Low or Medium or High) with (Steady, Dynamic) (use 1 word for the name and full for the value, example name='High' value='High Tempo', same for steady etc)
+          Tempo: (Low or Medium or High) with (Steady, Dynamic)
           Other: More tags related to the song/artist
-
-          Example for tags a release/song`Bad Apple` by `nomico` parenthesis not included
-
-          Genre: Touhou, Game Music
-          Sub Genre: Electronic, Doujin Music
-          Language: Japanese,
-          Vibe: Melancholic, Nostalgic
-          Instruments: Synthesizer, Drum Machine
-          Vocals: Vocaloid
-          Tempo: Medium, Steady
-          Other: Touhou Project, ZUN, Iconic, Fan Favorite
         """,
     nullable: false,
     items: Schema.object(
@@ -72,7 +62,7 @@ class ApiResponse {
       properties: {
         "name": Schema.string(
           description:
-              "The display name. Should be Capitalized except if they are names. Dont use vague names except for tempo",
+              "The display name and should be the same as the value for most of the time. Should be Capitalized except if they are names.",
           nullable: false,
         ),
         "value": Schema.string(
