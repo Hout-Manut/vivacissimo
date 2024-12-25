@@ -94,6 +94,7 @@ class GeminiApi {
 
     entity.tags.clear();
     entity.tags.addAll(tags);
+    Vivacissimo.saveData();
 
     return entity;
   }

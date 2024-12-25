@@ -57,16 +57,41 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   RecentPlaylists(onTap: onTap),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                      onPressed: () {
+                  if (Vivacissimo.isDebug)
+                    AppButton(
+                      onTap: () {
                         Vivacissimo.saveData();
                       },
-                      child: Text("DEBUG: Save data")),
-                  ElevatedButton(
-                      onPressed: () {
-                        Vivacissimo.deleteData();
-                      },
-                      child: Text("DEBUG: Clear data")),
+                      child: const Text(
+                        "DEBUG: Save data",
+                        style: TextStyle(color: AppColor.buttonSelectedColor),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  AppButton(
+                    onTap: () {
+                      Vivacissimo.deleteData();
+                    },
+                    child: const Text(
+                      "DEBUG: Clear data",
+                      style: TextStyle(color: AppColor.buttonSelectedColor),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  AppButton(
+                    onTap: () {
+                      Vivacissimo.addDummyData();
+                    },
+                    child: const Text(
+                      "DEBUG: Add dummy data",
+                      style: TextStyle(color: AppColor.buttonSelectedColor),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "In-Memory: R:${Vivacissimo.releases.length}, A:${Vivacissimo.artists.length}, P:${Vivacissimo.playlists.length}, T:${Vivacissimo.tags.length}",
+                    style: const TextStyle(color: AppColor.buttonActiveColor),
+                  ),
                 ],
               ),
             ),

@@ -62,7 +62,7 @@ class ApiResponse {
       properties: {
         "name": Schema.string(
           description:
-              "The display name and should be the same as the value for most of the time. Should be Capitalized except if they are names.",
+              "The display name and should be the same as the value for most of the time. Should be Capitalized except if they are names. Forexample: name=J-Pop, value=J-Pop, type=genre",
           nullable: false,
         ),
         "value": Schema.string(
@@ -71,7 +71,7 @@ class ApiResponse {
           nullable: false,
         ),
         "type": Schema.enumString(
-          description: "The tag category",
+          description: "The tag category, This should never be used as the name",
           enumValues: TagType.values.map((tag) => tag.name).toList(),
           nullable: false,
         ),

@@ -153,10 +153,11 @@ class MusicbrainzApi {
             if (data['images'] != null && data['images'].isNotEmpty) {
               for (var image in data['images']) {
                 if (image['thumbnails'] != null) {
-                  return image['thumbnails'][dimension] ??
-                      image['thumbnails']['large'] ??
-                      image['thumbnails']['500'] ??
-                      image['thumbnails']['small'];
+                  String? hasImage = image['thumbnails'][dimension];
+                  if (hasImage != null) return hasImage;
+                  for (String? fallback in image['thumbnails']) {
+                    if (fallback != null) return fallback;
+                  }
                 }
               }
             } else {

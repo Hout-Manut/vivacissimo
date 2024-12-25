@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vivacissimo/models/entity.dart';
 import 'package:vivacissimo/services/api/musicbrainz_api.dart';
+import 'package:vivacissimo/services/vivacissimo.dart';
 import 'package:vivacissimo/widgets/commons.dart';
 import 'package:vivacissimo/widgets/constants.dart';
 import 'dart:async';
@@ -67,7 +68,7 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
     if (debounce?.isActive ?? false) {
       debounce!.cancel();
     }
-    debounce = Timer(const Duration(milliseconds: 2000), () => search());
+    debounce = Timer(const Duration(milliseconds: 1000), () => search());
 
     if (controller.text.isEmpty) {
       state = SearchState.idle;
@@ -80,7 +81,7 @@ class _EntitySearchModalState extends State<EntitySearchModal> {
   Future<void> search() async {
     if (state != SearchState.loading) return;
     List<Release> foundReleases =
-        await MusicbrainzApi.searchReleases(controller.text);
+        await Vivacissimo.searchReleases(controller.text);
     results.clear();
     results.addAll(foundReleases);
     if (!mounted) return;

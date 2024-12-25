@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
+import 'package:vivacissimo/dummy_data/artists.dart';
+import 'package:vivacissimo/dummy_data/releases.dart';
 import 'package:vivacissimo/services/api/gemini_api.dart';
 import 'package:vivacissimo/services/api/musicbrainz_api.dart';
 import '../models/models.dart';
@@ -16,42 +18,44 @@ void printDebug(Object object) {
 class Vivacissimo {
   static const Uuid uuid = Uuid();
 
+  static bool get isDebug => kDebugMode;
+
   static const String _releaseFilename = "releases.json";
   static final List<Release> _savedReleases = [];
   static List<Release> get releases => _savedReleases;
-  static void setRelease(Release item) {
-    int index = _savedReleases.indexWhere((item) => item == item);
+  static void setRelease(Release newRelease) {
+    int index = _savedReleases.indexWhere((item) => item == newRelease);
 
     if (index == -1) {
-      _savedReleases.add(item);
+      _savedReleases.add(newRelease);
     } else {
-      _savedReleases[index] = item;
+      _savedReleases[index] = newRelease;
     }
   }
 
   static const String _artistFilename = "artists.json";
   static final List<Artist> _savedArtists = [];
   static List<Artist> get artists => _savedArtists;
-  static void setArtist(Artist item) {
-    int index = _savedArtists.indexWhere((item) => item == item);
+  static void setArtist(Artist newArtist) {
+    int index = _savedArtists.indexWhere((item) => item == newArtist);
 
     if (index == -1) {
-      _savedArtists.add(item);
+      _savedArtists.add(newArtist);
     } else {
-      _savedArtists[index] = item;
+      _savedArtists[index] = newArtist;
     }
   }
 
   static const String _playlistFilename = "playlists.json";
   static final List<Playlist> _savedPlaylists = [];
   static List<Playlist> get playlists => _savedPlaylists;
-  static void setplaylist(Playlist item) {
-    int index = _savedPlaylists.indexWhere((item) => item == item);
+  static void setplaylist(Playlist newPlaylist) {
+    int index = _savedPlaylists.indexWhere((item) => item == newPlaylist);
 
     if (index == -1) {
-      _savedPlaylists.add(item);
+      _savedPlaylists.add(newPlaylist);
     } else {
-      _savedPlaylists[index] = item;
+      _savedPlaylists[index] = newPlaylist;
     }
   }
 
@@ -68,6 +72,32 @@ class Vivacissimo {
   static final Set<Playlist> processingList = {};
 
   static const JsonEncoder encoder = JsonEncoder.withIndent("  ");
+
+  static void addDummyData() {
+    for (Artist dummyArtist in dummyArtists.values) {
+      setArtist(dummyArtist);
+    }
+    for (Release dummyRelease in dummyReleases.values) {
+      setRelease(dummyRelease);
+      for (Tag dummyTag in dummyRelease.tags) {
+        setTag(dummyTag);
+      }
+    }
+  }
+
+  static Future<List<Release>> searchReleases(String query) async {
+    List<Release> foundReleases = await MusicbrainzApi.searchReleases(query);
+
+    List<Release> updatedReleases = foundReleases.map((foundRelease) {
+      Release? matchingSavedRelease = _savedReleases.firstWhere(
+        (savedRelease) => savedRelease.id == foundRelease.id,
+        orElse: () => foundRelease,
+      );
+      return matchingSavedRelease;
+    }).toList();
+
+    return updatedReleases;
+  }
 
   static void addPlaylist(Playlist newPlaylist) {
     setplaylist(newPlaylist);
@@ -105,6 +135,7 @@ class Vivacissimo {
     } catch (e) {
       printDebug('Error saving image: $e');
     }
+    saveData();
   }
 
   static Future<void> askForPermission() async {
@@ -365,6 +396,7 @@ class Vivacissimo {
 
     processingList.remove(playlist);
     addPlaylist(playlist);
+    saveData();
     return playlist;
   }
 

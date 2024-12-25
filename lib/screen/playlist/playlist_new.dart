@@ -198,7 +198,7 @@ class _PlaylistNewState extends State<PlaylistNew> {
   void findTags(Entity entity) async {
     Entity? alreadyExist = Vivacissimo.getReleaseById(entity.id);
     alreadyExist ??= Vivacissimo.getArtistById(entity.id);
-    if (alreadyExist == null) {
+    if (alreadyExist == null || alreadyExist.tags.isEmpty) {
       await Vivacissimo.newEntity(entity);
     }
     setState(() {
