@@ -479,10 +479,10 @@ class _PlaylistNewState extends State<PlaylistNew> {
                           }),
                       onAdd: addReference),
                   const SizedBox(height: 8),
-                  const TitleText('Advanced Configure'),
+                  const TitleText('Tag Preferences'),
                   const SizedBox(height: 8),
                   buildTags(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 48),
                   const TitleText('Playlist Options', key: Key("options")),
                   const SizedBox(height: 8),
                   Column(
@@ -632,8 +632,9 @@ class _PlaylistNewState extends State<PlaylistNew> {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 32.0),
+                padding: const EdgeInsets.only(bottom: 24.0),
                 child: Material(
+                  elevation: 20,
                   borderRadius: BorderRadius.circular(4),
                   color: AppColor.primaryColor,
                   child: InkWell(

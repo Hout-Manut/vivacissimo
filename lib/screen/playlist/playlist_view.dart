@@ -466,8 +466,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                   return Container(
                                     width: size.width,
                                     height: size.height,
-                                    color: Colors
-                                        .transparent,
+                                    color: Colors.transparent,
                                   );
                                 },
                                 child: coverImage ??
@@ -705,51 +704,51 @@ class PlaylistItems extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            child: ReorderableDragStartListener(
-              index: index,
-              child: Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.only(top: 2),
-                      width: 16,
-                      child: Text(
-                        (index + 1).toString(),
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          color: AppColor.textColor,
-                          fontSize: 12,
+            child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(top: 2),
+                    width: 16,
+                    child: Text(
+                      (index + 1).toString(),
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        color: AppColor.textColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          item.title,
+                          style: const TextStyle(
+                            color: AppColor.textColor,
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            item.title,
-                            style: const TextStyle(
-                              color: AppColor.textColor,
-                              fontSize: 14,
-                            ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.credit.toString(),
+                          style: const TextStyle(
+                            color: AppColor.textSecondaryColor,
+                            fontSize: 12,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.credit.toString(),
-                            style: const TextStyle(
-                              color: AppColor.textSecondaryColor,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    const Padding(
+                  ),
+                  const SizedBox(width: 4),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: const Padding(
                       padding: EdgeInsets.only(top: 4.0),
                       child: Icon(
                         Icons.drag_handle_rounded,
@@ -757,8 +756,8 @@ class PlaylistItems extends StatelessWidget {
                         size: 16,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );

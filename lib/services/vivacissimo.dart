@@ -49,7 +49,7 @@ class Vivacissimo {
   static const String _playlistFilename = "playlists.json";
   static final List<Playlist> _savedPlaylists = [];
   static List<Playlist> get playlists => _savedPlaylists;
-  static void setplaylist(Playlist newPlaylist) {
+  static void setPlaylist(Playlist newPlaylist) {
     int index = _savedPlaylists.indexWhere((item) => item == newPlaylist);
 
     if (index == -1) {
@@ -100,7 +100,7 @@ class Vivacissimo {
   }
 
   static void addPlaylist(Playlist newPlaylist) {
-    setplaylist(newPlaylist);
+    setPlaylist(newPlaylist);
     _savedReleases.addAll(newPlaylist.releases);
     for (Release release in newPlaylist.releases) {
       _savedTags.addAll(release.tags);
@@ -201,7 +201,6 @@ class Vivacissimo {
     if (data == null) return;
     if (loaded) return;
 
-    // Helper function to load data from a file
     Future<void> loadFile(
       String filename,
       void Function(List<dynamic>) onLoad,
@@ -218,14 +217,19 @@ class Vivacissimo {
       }
     }
 
-    await loadFile(_releaseFilename, (jsonData) {
-      _savedReleases.clear();
-      _savedReleases.addAll(jsonData.map((json) => Release.fromJson(json)));
-    });
-
     await loadFile(_artistFilename, (jsonData) {
       _savedArtists.clear();
       _savedArtists.addAll(jsonData.map((json) => Artist.fromJson(json)));
+    });
+
+    await loadFile(_tagFilename, (jsonData) {
+      _savedTags.clear();
+      _savedTags.addAll(jsonData.map((json) => Tag.fromJson(json)));
+    });
+
+    await loadFile(_releaseFilename, (jsonData) {
+      _savedReleases.clear();
+      _savedReleases.addAll(jsonData.map((json) => Release.fromJson(json)));
     });
 
     await loadFile(_playlistFilename, (jsonData) {
@@ -233,10 +237,6 @@ class Vivacissimo {
       _savedPlaylists.addAll(jsonData.map((json) => Playlist.fromJson(json)));
     });
 
-    await loadFile(_tagFilename, (jsonData) {
-      _savedTags.clear();
-      _savedTags.addAll(jsonData.map((json) => Tag.fromJson(json)));
-    });
     loaded = true;
     printDebug("Data was loaded");
   }

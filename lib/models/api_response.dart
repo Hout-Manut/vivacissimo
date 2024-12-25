@@ -62,7 +62,7 @@ class ApiResponse {
       properties: {
         "name": Schema.string(
           description:
-              "The display name and should be the same as the value for most of the time. Should be Capitalized except if they are names. Forexample: name=J-Pop, value=J-Pop, type=genre",
+              "The display name and should ALWAYS be the same as the value. Should be Capitalized except if they are names. Forexample: name=J-Pop, value=J-Pop, type=genre",
           nullable: false,
         ),
         "value": Schema.string(

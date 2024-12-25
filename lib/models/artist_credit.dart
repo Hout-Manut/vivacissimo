@@ -13,18 +13,6 @@ class ArtistCredit {
     this.prefix = '',
     required this.parts,
   });
-
-  ArtistCredit.fake(String artistName)
-      : prefix = "",
-        parts = [
-          ArtistCreditPart(
-            artist: Artist(
-              name: artistName,
-              tags: {},
-            ),
-          ),
-        ];
-
   factory ArtistCredit.fromJson(Map<String, dynamic> json) =>
       _$ArtistCreditFromJson(json);
 

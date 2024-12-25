@@ -120,22 +120,18 @@ class Playlist {
   ) {
     return {
       'more': [
-        ...tags['more']!.map((id) =>
-            Vivacissimo.getTagById(id) ??
-            Tag(
-              name: id,
-              value: id,
-              type: TagType.other,
-            )),
+        ...tags['more']!.map(
+          (id) =>
+              Vivacissimo.getTagById(id) ??
+              Tag(id: id, name: id, value: id, type: TagType.other),
+        )
       ],
       'less': [
-        ...tags['less']!.map((id) =>
-            Vivacissimo.getTagById(id) ??
-            Tag(
-              name: id,
-              value: id,
-              type: TagType.other,
-            )),
+        ...tags['less']!.map(
+          (id) =>
+              Vivacissimo.getTagById(id) ??
+              Tag(id: id, name: id, value: id, type: TagType.other),
+        ),
       ],
     };
   }
@@ -224,7 +220,7 @@ class Playlist {
 
   String get preferredTags {
     if ((preferences['more'] ?? []).isEmpty) return "";
-    String str = "focused on songs that are related to these tags: ";
+    String str = "heavily focused on songs that are related to these tags: ";
     str = str + preferences['more']!.map((tag) => tag.value).join(", ");
     return str;
   }

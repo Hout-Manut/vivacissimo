@@ -42,12 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            Padding(
+            Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 64.0,
               ),
+              clipBehavior: Clip.none,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -56,42 +58,54 @@ class _HomeScreenState extends State<HomeScreen> {
                   const TitleText('Recent Playlists'),
                   const SizedBox(height: 8),
                   RecentPlaylists(onTap: onTap),
-                  const SizedBox(height: 16),
+                  const Expanded(child: SizedBox()),
                   if (Vivacissimo.isDebug)
-                    AppButton(
-                      onTap: () {
-                        Vivacissimo.saveData();
-                      },
-                      child: const Text(
-                        "DEBUG: Save data",
-                        style: TextStyle(color: AppColor.buttonSelectedColor),
-                      ),
+                    Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AppButton(
+                          onTap: () {
+                            Vivacissimo.saveData();
+                          },
+                          child: const Text(
+                            "DEBUG: Save data",
+                            style:
+                                TextStyle(color: AppColor.buttonSelectedColor),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        AppButton(
+                          onTap: () {
+                            Vivacissimo.deleteData();
+                          },
+                          child: const Text(
+                            "DEBUG: Clear data",
+                            style:
+                                TextStyle(color: AppColor.buttonSelectedColor),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        AppButton(
+                          onTap: () async {
+                            Vivacissimo.addDummyData();
+                            setState(() {});
+                          },
+                          child: const Text(
+                            "DEBUG: Add dummy data",
+                            style:
+                                TextStyle(color: AppColor.buttonSelectedColor),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "In-Memory: R:${Vivacissimo.releases.length}, A:${Vivacissimo.artists.length}, P:${Vivacissimo.playlists.length}, T:${Vivacissimo.tags.length}",
+                          style: const TextStyle(
+                              color: AppColor.buttonActiveColor),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-                  const SizedBox(height: 8),
-                  AppButton(
-                    onTap: () {
-                      Vivacissimo.deleteData();
-                    },
-                    child: const Text(
-                      "DEBUG: Clear data",
-                      style: TextStyle(color: AppColor.buttonSelectedColor),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  AppButton(
-                    onTap: () {
-                      Vivacissimo.addDummyData();
-                    },
-                    child: const Text(
-                      "DEBUG: Add dummy data",
-                      style: TextStyle(color: AppColor.buttonSelectedColor),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "In-Memory: R:${Vivacissimo.releases.length}, A:${Vivacissimo.artists.length}, P:${Vivacissimo.playlists.length}, T:${Vivacissimo.tags.length}",
-                    style: const TextStyle(color: AppColor.buttonActiveColor),
-                  ),
                 ],
               ),
             ),

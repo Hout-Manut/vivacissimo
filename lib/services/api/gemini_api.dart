@@ -54,9 +54,16 @@ class GeminiApi {
                 return release;
               }
 
+              Artist unknownArtist = Artist(
+                name: result["artist"],
+                tags: {},
+              );
+
               return Release(
                 title: result["title"]!,
-                credit: ArtistCredit.fake(result["artist"]),
+                credit: ArtistCredit(
+                  parts: [ArtistCreditPart(artist: unknownArtist)],
+                ),
               );
             }))
         .toList();
