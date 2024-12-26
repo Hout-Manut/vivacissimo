@@ -250,3 +250,41 @@ class Playlist {
     return sb.toString().trim();
   }
 }
+
+@JsonSerializable()
+class SpotifyPlaylist {
+  final String id;
+  final String sourceId;
+  final String href;
+  final String? description;
+  final String? imageUrl;
+  final String name;
+  final bool public;
+
+  SpotifyPlaylist({
+    required this.id,
+    required this.sourceId,
+    required this.href,
+    required this.description,
+    required this.imageUrl,
+    required this.name,
+    required this.public,
+  });
+  factory SpotifyPlaylist.fromJson(Map<String, dynamic> json) =>
+      _$SpotifyPlaylistFromJson(json);
+
+  factory SpotifyPlaylist.fromSpotify(Map<String, dynamic> json,
+      {required String sourceId}) {
+    return SpotifyPlaylist(
+      id: json['id'],
+      sourceId: sourceId,
+      href: json['href'],
+      description: json['description'],
+      imageUrl: json['imageUrl'],
+      name: json['name'],
+      public: json['public'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => _$SpotifyPlaylistToJson(this);
+}

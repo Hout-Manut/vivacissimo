@@ -35,14 +35,21 @@ enum ArtistType {
 
 sealed class Entity {
   final String id;
+  final String? spotifyId;
+  final String? spotifyUri;
   final EntityType entityType;
   @JsonKey(toJson: _tagsToIds, fromJson: _idsToTags, name: "tagIds")
   final Set<Tag> tags = {};
 
   static const Uuid uuid = Uuid();
 
-  Entity({String? id, required this.entityType, Set<Tag>? tags})
-      : id = id ?? uuid.v4() {
+  Entity({
+    String? id,
+    this.spotifyId,
+    this.spotifyUri,
+    required this.entityType,
+    Set<Tag>? tags,
+  })  : id = id ?? uuid.v4() {
     this.tags.addAll(tags ?? {});
   }
 
@@ -102,6 +109,8 @@ class Artist extends Entity {
 
   Artist({
     super.id,
+    super.spotifyId,
+    super.spotifyUri,
     required this.name,
     this.sortName,
     super.tags,
@@ -117,9 +126,20 @@ class Artist extends Entity {
     return Artist(
       id: json['id'],
       name: json['name']!,
-      sortName: json['sort-name']!,
+      sortName: json['name']!,
       tags: {},
       releasesJson: json['releases'] ?? [],
+    );
+  }
+  factory Artist.fromSpotify(Map<String, dynamic> json) {
+    return Artist(
+      id: null,
+      spotifyId: json['id'],
+      name: json['name']!,
+      spotifyUri: json['uri']!,
+      sortName: json['name']!,
+      tags: {},
+      releasesJson: [],
     );
   }
 
@@ -146,6 +166,8 @@ class Release extends Entity {
 
   Release({
     super.id,
+    super.spotifyId,
+    super.spotifyUri,
     super.tags,
     required this.title,
     required this.credit,
@@ -158,6 +180,16 @@ class Release extends Entity {
       id: json['id'],
       title: json['title'],
       credit: ArtistCredit.fromMusicBrainz(json['artist-credit']),
+      tags: {},
+    );
+  }
+
+  factory Release.fromSpotify(Map<String, dynamic> json) {
+    return Release(
+      spotifyId: json['id'],
+      spotifyUri: json['uri'],
+      title: json['name'],
+      credit: ArtistCredit.fromSpotify(json['artist-credit']),
       tags: {},
     );
   }

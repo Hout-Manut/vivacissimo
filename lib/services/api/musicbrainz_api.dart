@@ -106,7 +106,7 @@ class MusicbrainzApi {
     releases.sort((a, b) {
       int scoreA = _calculateMatchScore(a, queryParts);
       int scoreB = _calculateMatchScore(b, queryParts);
-      return scoreB.compareTo(scoreA); // Descending order
+      return scoreB.compareTo(scoreA);
     });
 
     return releases;

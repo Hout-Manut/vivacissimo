@@ -12,6 +12,9 @@ class GeminiApi {
 
   GeminiApi({String model = 'gemini-1.5-flash-latest'}) {
     _apiKey = dotenv.env["GEMINI_TOKEN"] ?? "";
+    if (_apiKey.isEmpty) {
+      throw Exception("Error: Gemini token is unset");
+    }
   }
 
   Future<List<Release>> getReleases(String prompt) async {

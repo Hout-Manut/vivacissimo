@@ -31,6 +31,21 @@ class ArtistCredit {
     return ArtistCredit(parts: parts);
   }
 
+  factory ArtistCredit.fromSpotify(List<dynamic> json) {
+    List<ArtistCreditPart> parts = [];
+
+    for (Map<String, dynamic> part in json) {
+      parts.add(
+        ArtistCreditPart(
+          artist: Artist.fromSpotify(part),
+          joinPhrase: "",
+          credit: part['name'],
+        ),
+      );
+    }
+    return ArtistCredit(parts: parts);
+  }
+
   Map<String, dynamic> toJson() => _$ArtistCreditToJson(this);
 
   @override

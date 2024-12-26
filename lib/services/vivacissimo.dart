@@ -19,6 +19,7 @@ class Vivacissimo {
   static const Uuid uuid = Uuid();
 
   static bool get isDebug => kDebugMode;
+  static String userId = "";
 
   static const String _releaseFilename = "releases.json";
   static final List<Release> _savedReleases = [];
