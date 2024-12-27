@@ -2,9 +2,6 @@ import 'package:uuid/uuid.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:vivacissimo/models/models.dart';
 import 'package:vivacissimo/services/vivacissimo.dart';
-import 'tag.dart';
-
-import 'artist_credit.dart';
 
 part 'entity.g.dart';
 
