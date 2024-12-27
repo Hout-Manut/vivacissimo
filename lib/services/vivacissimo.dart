@@ -11,6 +11,7 @@ import 'package:vivacissimo/services/api/gemini_api.dart';
 import 'package:vivacissimo/services/api/musicbrainz_api.dart';
 import '../models/models.dart';
 
+/// Print function that only prints if in debug mode
 void printDebug(Object object) {
   if (kDebugMode) debugPrint(object.toString());
 }
@@ -19,6 +20,8 @@ class Vivacissimo {
   static const Uuid uuid = Uuid();
 
   static bool get isDebug => kDebugMode;
+
+	/// The user's Spotify ID
   static String userId = "";
 
   static const String _releaseFilename = "releases.json";
@@ -67,9 +70,11 @@ class Vivacissimo {
     _savedTags.add(item);
   }
 
+	/// If files has been loaded upon startup
   static bool loaded = false;
   static Future<void>? _loadingFuture;
 
+	/// Tracks playlists that are currently loading songs
   static final Set<Playlist> processingList = {};
 
   static const JsonEncoder encoder = JsonEncoder.withIndent("  ");
@@ -86,9 +91,11 @@ class Vivacissimo {
     }
   }
 
+	/// Search the MusicBrainz database with the query
   static Future<List<Release>> searchReleases(String query) async {
     List<Release> foundReleases = await MusicbrainzApi.searchReleases(query);
 
+		// Replace the result with songs that was cached
     List<Release> updatedReleases = foundReleases.map((foundRelease) {
       Release? matchingSavedRelease = _savedReleases.firstWhere(
         (savedRelease) => savedRelease.id == foundRelease.id,
@@ -139,18 +146,14 @@ class Vivacissimo {
     saveData();
   }
 
+	/// Checks for photo permission, if it's denied, ask to allow.
   static Future<void> askForPermission() async {
     PermissionStatus status = await Permission.photos.status;
     if (status.isDenied) {
-      debugPrint("storage permission ===$status");
-
       await Permission.photos.request();
       // await Permission.storage.request();
-      // await Permission.storage.request();
-      // await Permission.storage.request();
-    } else {
-      debugPrint("permission storage $status");
     }
+    debugPrint("permission storage: $status");
   }
 
   static Release? getReleaseById(String id) {
@@ -249,25 +252,21 @@ class Vivacissimo {
       await data.create(recursive: true);
     }
 
-    // Save releases
     File releaseFile = File('${data.path}/$_releaseFilename');
     await releaseFile.writeAsString(
         encoder.convert(_savedReleases.map((r) => r.toJson()).toList()),
         encoding: utf8);
 
-    // Save artists
     File artistFile = File('${data.path}/$_artistFilename');
     await artistFile.writeAsString(
         encoder.convert(_savedArtists.map((a) => a.toJson()).toList()),
         encoding: utf8);
 
-    // Save playlists
     File playlistFile = File('${data.path}/$_playlistFilename');
     await playlistFile.writeAsString(
         encoder.convert(_savedPlaylists.map((p) => p.toJson()).toList()),
         encoding: utf8);
 
-    // Save tags
     File tagFile = File('${data.path}/$_tagFilename');
     await tagFile.writeAsString(
         encoder.convert(_savedTags.map((t) => t.toJson()).toList()),
@@ -368,6 +367,10 @@ class Vivacissimo {
     }
   }
 
+	///
+	/// A future that returns a loading playlist and
+	/// return the playlist once it has finished loading songs
+	///
   static Future<Playlist> ensurePlaylistLoaded(Playlist playlist) async {
     if (!processingList.contains(playlist)) {
       return playlist;
@@ -401,6 +404,9 @@ class Vivacissimo {
     return playlist;
   }
 
+	///
+	/// Process the new entity by giving it tags and add to memory
+	///
   static Future<T> newEntity<T extends Entity>(T entity) async {
     GeminiApi api = GeminiApi();
     printDebug("New entity pending add: $entity");
